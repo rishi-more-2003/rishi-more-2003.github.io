@@ -5,13 +5,12 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.75;
-  color: #1d1d1f;
-  background: #fbfbfd;
+  font-family: "IBM Plex Mono", "Menlo", "Consolas", "Monaco", monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #222;
+  background: #e8e8e8;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 main {
@@ -21,20 +20,18 @@ main {
 }
 
 h1 {
-  font-size: 26px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
   margin-bottom: 4px;
-  letter-spacing: -0.3px;
-  color: #1d1d1f;
+  letter-spacing: -0.5px;
 }
 
 p {
   margin-top: 18px;
-  color: #424245;
 }
 
 a {
-  color: #0066cc;
+  color: #3355cc;
   text-decoration: none;
 }
 
@@ -48,7 +45,7 @@ a:hover {
 
 .links a {
   margin-right: 14px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 ul {
@@ -59,7 +56,6 @@ ul {
 
 ul li {
   margin-bottom: 1px;
-  color: #424245;
 }
 
 ul.plain li {
@@ -73,10 +69,10 @@ ul.plain li {
   }
 
   h1 {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   body {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
