@@ -22,44 +22,68 @@ main {
 h1 {
   font-size: 28px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   letter-spacing: -0.5px;
 }
 
+nav {
+  margin-top: 2px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+nav a {
+  color: #3355cc;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+nav a:hover {
+  color: #1a1a1a;
+}
+
+.sep {
+  color: #999;
+  margin: 0 6px;
+}
+
 p {
-  margin-top: 18px;
+  margin-top: 20px;
+}
+
+.section-heading {
+  margin-top: 28px;
+  margin-bottom: 2px;
+  color: #444;
 }
 
 a {
   color: #3355cc;
   text-decoration: none;
+  transition: color 0.15s;
 }
 
 a:hover {
-  text-decoration: underline;
-}
-
-.links {
-  margin-top: 2px;
-}
-
-.links a {
-  margin-right: 14px;
-  font-size: 13px;
+  color: #1a1a1a;
 }
 
 ul {
-  margin-top: 6px;
+  margin-top: 4px;
   padding-left: 24px;
   list-style: none;
 }
 
 ul li {
-  margin-bottom: 1px;
+  margin-bottom: 3px;
 }
 
 ul.plain li {
-  margin-bottom: 1px;
+  margin-bottom: 3px;
+}
+
+.meta {
+  color: #888;
+  font-size: 12px;
 }
 
 @media (max-width: 480px) {
