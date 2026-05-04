@@ -86,6 +86,16 @@ ul.plain li {
   font-size: 12px;
 }
 
+.tag {
+  color: #666;
+  font-size: 11px;
+  border: 1px solid #bbb;
+  border-radius: 999px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
 @media (max-width: 480px) {
   main {
     margin: 40px auto;
