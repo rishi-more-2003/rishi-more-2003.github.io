@@ -4,6 +4,15 @@
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / old Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari */
+}
+
 body {
   font-family: "IBM Plex Mono", "Menlo", "Consolas", "Monaco", monospace;
   font-size: 14px;
@@ -11,12 +20,27 @@ body {
   color: #222;
   background: #e8e8e8;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: fade-in 0.6s ease both;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+::selection {
+  background: #dfe3ec;
 }
 
 main {
+  width: 100%;
   max-width: 580px;
-  margin: 80px auto;
-  padding: 0 24px;
+  margin: auto;
+  padding: 40px 24px;
 }
 
 h1 {
@@ -35,11 +59,11 @@ nav {
 nav a {
   color: #3355cc;
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color 0.2s;
 }
 
 nav a:hover {
-  color: #1a1a1a;
+  color: #2a2a28;
 }
 
 .sep {
@@ -60,11 +84,11 @@ p {
 a {
   color: #3355cc;
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color 0.2s;
 }
 
 a:hover {
-  color: #1a1a1a;
+  color: #2a2a28;
 }
 
 ul {
@@ -96,10 +120,81 @@ ul.plain li {
   white-space: nowrap;
 }
 
+/* theme toggle */
+.theme-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid #b3b3b3;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1;
+  color: #555;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: #888;
+  color: #222;
+}
+
+.dark .theme-toggle {
+  border-color: #444;
+  color: #aaa;
+}
+
+.dark .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: #666;
+  color: #eee;
+}
+
+/* night mode */
+.dark body {
+  color: #cfccc4;
+  background: #1b1b1a;
+}
+
+.dark .section-heading {
+  color: #8a8780;
+}
+
+.dark .meta {
+  color: #6f6c65;
+}
+
+.dark .sep {
+  color: #555;
+}
+
+.dark a,
+.dark nav a {
+  color: #7e93f0;
+}
+
+.dark a:hover,
+.dark nav a:hover {
+  color: #f0eee8;
+}
+
+.dark ::selection {
+  background: #333a4d;
+}
+
 @media (max-width: 480px) {
   main {
-    margin: 40px auto;
-    padding: 0 20px;
+    margin: auto;
+    padding: 32px 20px;
   }
 
   h1 {

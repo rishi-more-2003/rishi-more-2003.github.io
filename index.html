@@ -22,6 +22,15 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
   <link rel="stylesheet" href="style.css">
 
+  <script>
+    // set theme before paint to avoid a flash
+    (function () {
+      var saved = localStorage.getItem('theme');
+      var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -43,6 +52,7 @@
   </script>
 </head>
 <body>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle night mode">&#9790;</button>
   <main>
     <h1>rishi</h1>
     <nav>
@@ -96,5 +106,19 @@
       <li>&#129360; baking <span class="meta">72-layer croissant</span></li>
     </ul>
   </main>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById('themeToggle');
+      function sync() { btn.innerHTML = root.classList.contains('dark') ? '&#9728;' : '&#9790;'; }
+      sync();
+      btn.addEventListener('click', function () {
+        root.classList.toggle('dark');
+        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        sync();
+      });
+    })();
+  </script>
 </body>
 </html>
