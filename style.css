@@ -501,68 +501,9 @@ pre.smi {
   100% { opacity: 0; }
 }
 
-@media (max-width: 520px) {
-  body {
-    font-size: 12.5px;
-  }
-
-  .stage {
-    padding: 48px 10px 36px;
-  }
-
-  .window {
-    max-height: calc(100vh - 84px);
-    max-height: calc(100svh - 84px);
-  }
-
-  .hud-top {
-    grid-template-columns: 1fr auto;
-  }
-
-  .hud-top__c {
-    display: none;
-  }
-
-  .screen {
-    padding: 14px 14px 4px;
-  }
-
-  .banner h1,
-  .banner .name {
-    font-size: 38px;
-  }
-
-  .facts {
-    grid-template-columns: 7ch 1fr;
-  }
-
-  .alt-name {
-    font-size: 27px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .window,
-  .banner > *,
-  .hud-dot {
-    animation: none;
-  }
-
-  .death,
-  .death * {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
-  }
-
-  * {
-    transition: none !important;
-  }
-}
-
-/* hud: a live top bar, a telemetry log, and the headline */
+/* hud: a live top bar and a telemetry log */
 .hud-top,
-.hud-log,
-.headline {
+.hud-log {
   position: fixed;
   z-index: 3;
 }
@@ -623,42 +564,67 @@ pre.smi {
   mask-image: linear-gradient(to bottom, transparent, #000 40%);
 }
 
-.headline {
-  left: clamp(16px, 2.4vw, 32px);
-  bottom: clamp(28px, 4vw, 56px);
-  margin: 0;
-  font: 400 clamp(56px, 7vw, 132px)/0.88 var(--display);
-  letter-spacing: -0.03em;
-  text-shadow: 0 0 40px rgba(2, 3, 3, 0.85);
-  pointer-events: none;
+/* the log only shows where there is open water beside the terminal */
+@media (max-width: 1319px) {
+  .hud-log {
+    display: none;
+  }
 }
 
-.headline span,
-.headline em {
-  display: block;
-}
+@media (max-width: 520px) {
+  body {
+    font-size: 12.5px;
+  }
 
-.headline em {
-  color: var(--red);
-}
-
-/* wide screens: the terminal moves right and the pond takes the stage, with the headline on the left */
-@media (min-width: 1100px) {
   .stage {
-    justify-items: end;
-    padding: 72px clamp(24px, 3vw, 56px) 56px;
+    padding: 48px 10px 36px;
   }
 
   .window {
-    width: min(600px, 44vw);
-    max-height: calc(100vh - 128px);
-    max-height: calc(100svh - 128px);
+    max-height: calc(100vh - 84px);
+    max-height: calc(100svh - 84px);
+  }
+
+  .hud-top {
+    grid-template-columns: 1fr auto;
+  }
+
+  .hud-top__c {
+    display: none;
+  }
+
+  .screen {
+    padding: 14px 14px 4px;
+  }
+
+  .banner h1,
+  .banner .name {
+    font-size: 38px;
+  }
+
+  .facts {
+    grid-template-columns: 7ch 1fr;
+  }
+
+  .alt-name {
+    font-size: 27px;
   }
 }
 
-@media (max-width: 1099px) {
-  .hud-log,
-  .headline {
-    display: none;
+@media (prefers-reduced-motion: reduce) {
+  .window,
+  .banner > *,
+  .hud-dot {
+    animation: none;
+  }
+
+  .death,
+  .death * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  * {
+    transition: none !important;
   }
 }

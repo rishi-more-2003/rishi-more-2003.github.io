@@ -694,11 +694,9 @@
     ctx.globalAlpha = 1;
   }
 
-  // the moon, broken into wobbling bands on the water and lit only as much as tonight's.
-  // on wide screens the terminal sits on the right, so the moon moves into open water
+  // the moon, broken into wobbling bands on the water and lit only as much as tonight's
   function drawMoon() {
-    const wide = W >= 1100;
-    const x = W * (wide ? 0.42 : 0.82), y = H * (wide ? 0.2 : 0.17), r = Math.min(W, H) * 0.045 + 18;
+    const x = W * 0.82, y = H * 0.17, r = Math.min(W, H) * 0.045 + 18;
     ctx.globalAlpha = 0.55 * (0.25 + 0.75 * LIT);
     ctx.drawImage(MOON_GLOW, x - r * 3.2, y - r * 2.2, r * 6.4, r * 4.4);
     ctx.strokeStyle = 'rgb(238, 228, 206)';
