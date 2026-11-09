@@ -17,19 +17,15 @@
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Rishi More — ML Engineer, Efficient LLM Inference">
-  <meta name="twitter:description" content="ML engineer focused on efficient LLM inference — kernels, quantization, vLLM serving. ICML 2026 co-first author."><base target="_blank">
-  
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
-  <link rel="stylesheet" href="style.css?v=2">
+  <meta name="twitter:description" content="ML engineer focused on efficient LLM inference — kernels, quantization, vLLM serving. ICML 2026 co-first author.">
+  <meta name="theme-color" content="#030404">
+  <base target="_blank">
 
-  <script>
-    // set theme before paint to avoid a flash
-    (function () {
-      var saved = localStorage.getItem('theme');
-      var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-      if (dark) document.documentElement.classList.add('dark');
-    })();
-  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
+  <link rel="stylesheet" href="style.css?v=3">
+  <script src="pond.js?v=1" defer></script>
+  <script src="terminal.js?v=1" defer></script>
+  <noscript><style>#sections { display: block !important; } .prompt, .chips, .js-only, .water-hint { display: none !important; }</style></noscript>
 
   <script type="application/ld+json">
   {
@@ -52,71 +48,91 @@
   </script>
 </head>
 <body>
-  <button class="theme-toggle" id="themeToggle" aria-label="Toggle night mode">&#9790;</button>
-  <main>
-    <h1>rishi</h1>
-    <nav>
-      <a href="mailto:rmore2@jhu.edu">email</a>
-      <span class="sep">/</span>
-      <a href="https://github.com/rishi-more-2003">github</a>
-      <span class="sep">/</span>
-      <a href="https://linkedin.com/in/rishimore102">linkedin</a>
-      <span class="sep">/</span>
-      <a href="resume_mle.pdf">resume</a>
-      <span class="sep">/</span>
-      <a href="https://scholar.google.com/citations?user=xUxO6r0AAAAJ&hl=en">scholar</a>
-    </nav>
+  <canvas id="pond" aria-hidden="true"></canvas>
 
-    <p>  
-      previously cs @ <a href="https://www.jhu.edu/">johns hopkins</a>.
-      i enjoy making language models faster, cheaper, and easier to trust.
-    </p>
+  <div class="stage">
+    <main class="window" id="term">
+      <div class="bar" aria-hidden="true">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">rishi — zsh</span>
+      </div>
 
-    <p class="section-heading">&#128300; research</p>
-    <ul>
-      <li><a href="https://arxiv.org/abs/2602.03814">making llms lazy in a good way — think hard only when it matters</a></li>
-      <li><a href="https://ieeexplore.ieee.org/document/10698920">hiding your face on camera without ruining the footage</a></li>
-      <li><a href="https://github.com/rishi-more-2003/Voice-Authentication">"hey siri" but it actually works at a concert</a></li>
-    </ul>
+      <div class="screen" id="screen">
+        <div id="out" aria-live="polite">
+          <div class="line"><span class="ps1">rishi@koi</span> <span class="path">~</span> % screenfetch</div>
+          <section class="banner">
+            <h1>rishi</h1>
+            <p class="tagline">making language models faster, cheaper, and easier to trust.</p>
+            <dl class="facts">
+              <dt>base</dt><dd>Boston, MA</dd>
+              <dt>edu</dt><dd>cs @ <a href="https://www.jhu.edu/">johns hopkins</a></dd>
+              <dt>focus</dt><dd>LLM inference: kernels, quantization, serving</dd>
+              <dt>prev</dt><dd>JHU DSAI · JHU CLSP · Mastek</dd>
+              <dt>paper</dt><dd><a href="https://arxiv.org/abs/2602.03814">ICML 2026, co-first author</a></dd>
+            </dl>
+            <nav class="links">
+              <a href="mailto:rmore2@jhu.edu">email</a><span class="sep">/</span><a href="https://github.com/rishi-more-2003">github</a><span class="sep">/</span><a href="https://linkedin.com/in/rishimore102">linkedin</a><span class="sep">/</span><a href="resume_mle.pdf">resume</a><span class="sep">/</span><a href="https://scholar.google.com/citations?user=xUxO6r0AAAAJ&amp;hl=en">scholar</a>
+            </nav>
+          </section>
+          <p class="line muted js-only">type <button type="button" class="cmdlink" data-cmd="help">help</button> to look around, or <button type="button" class="cmdlink" data-cmd="feed">feed</button> the koi.</p>
+        </div>
 
-    <p class="section-heading">&#128736;&#65039; side projects</p>
-    <ul>
-      
-      <li><a href="https://github.com/rishi-more-2003/post-training-failure-evals"> finding where "aligned" models secretly get worse </a></li>
-      <li><a href="https://github.com/rishi-more-2003/vllm-kernel-profiler"> what is my gpu doing between tokens? </a></li>
-      <li><a href="https://github.com/rishi-more-2003/asym-rel-eff-kt"> what if ai agents could mentor each other? </a></li>
-      <li><a href="https://github.com/rishi-more-2003/decode-roofline"> squeezing more speed out of LLMs on a laptop gpu </a></li>
-    </ul>
+        <!-- what the terminal prints. kept in the html so search engines and no-js visitors still get it -->
+        <div id="sections" hidden>
+          <section data-section="research">
+            <h2>research</h2>
+            <ul>
+              <li><a href="https://arxiv.org/abs/2602.03814">making llms lazy in a good way — think hard only when it matters</a></li>
+              <li><a href="https://ieeexplore.ieee.org/document/10698920">hiding your face on camera without ruining the footage</a></li>
+              <li><a href="https://github.com/rishi-more-2003/Voice-Authentication">"hey siri" but it actually works at a concert</a></li>
+            </ul>
+          </section>
+          <section data-section="projects">
+            <h2>side projects</h2>
+            <ul>
+              <li><a href="https://github.com/rishi-more-2003/post-training-failure-evals">finding where "aligned" models secretly get worse</a></li>
+              <li><a href="https://github.com/rishi-more-2003/vllm-kernel-profiler">what is my gpu doing between tokens?</a></li>
+              <li><a href="https://github.com/rishi-more-2003/asym-rel-eff-kt">what if ai agents could mentor each other?</a></li>
+              <li><a href="https://github.com/rishi-more-2003/decode-roofline">squeezing more speed out of LLMs on a laptop gpu</a></li>
+            </ul>
+          </section>
+          <section data-section="experience">
+            <h2>experience</h2>
+            <ul>
+              <li>summer 2025 @ jhu dsai <span class="meta">grad research</span></li>
+              <li>fall 2024 @ jhu clsp <span class="meta">grad research</span></li>
+              <li>summer 2023 @ mastek <span class="meta">mle intern</span></li>
+            </ul>
+          </section>
+          <section data-section="fun">
+            <h2>fun</h2>
+            <ul>
+              <li>bouldering <span class="meta">V9</span></li>
+              <li>chess <span class="meta">1700</span></li>
+              <li>lifting <span class="meta">bench 250lbs @ 118lbs</span></li>
+              <li>baking <span class="meta">72-layer croissant</span></li>
+            </ul>
+          </section>
+        </div>
 
+        <form class="prompt js-only" id="prompt" autocomplete="off">
+          <label for="cmd"><span class="ps1">rishi@koi</span> <span class="path">~</span> %</label>
+          <input id="cmd" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="type a command">
+        </form>
+      </div>
 
-    <p class="section-heading">&#128188; experience</p>
-    <ul class="plain">
-      <li>&#127811; summer 2025 @ jhu dsai <span class="meta"> grad research </span></li>
-      <li>&#128218; fall 2024 @ jhu clsp <span class="meta"> grad research </span></li>
-      <li>&#128296; summer 2023 @ mastek <span class="meta"> mle intern </span></li>
-    </ul>
+      <div class="chips js-only" aria-label="quick commands">
+        <button type="button" data-cmd="help">help</button>
+        <button type="button" data-cmd="about">about</button>
+        <button type="button" data-cmd="research">research</button>
+        <button type="button" data-cmd="projects">projects</button>
+        <button type="button" data-cmd="experience">experience</button>
+        <button type="button" data-cmd="contact">contact</button>
+        <button type="button" data-cmd="feed">feed</button>
+      </div>
+    </main>
+  </div>
 
-    <p class="section-heading">&#127922; fun</p>
-    <ul class="plain">
-      <li>&#129495; bouldering <span class="meta">V9</span></li>
-      <li>&#9822; chess <span class="meta">1700</span></li>
-      <li>&#127947;&#65039; lifting <span class="meta">bench 250lbs @ 118lbs</span></li>
-      <li>&#129360; baking <span class="meta">72-layer croissant</span></li>
-    </ul>
-  </main>
-
-  <script>
-    (function () {
-      var root = document.documentElement;
-      var btn = document.getElementById('themeToggle');
-      function sync() { btn.innerHTML = root.classList.contains('dark') ? '&#9728;' : '&#9790;'; }
-      sync();
-      btn.addEventListener('click', function () {
-        root.classList.toggle('dark');
-        localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
-        sync();
-      });
-    })();
-  </script>
+  <p class="water-hint" id="water-hint">click the water to feed the koi</p>
 </body>
 </html>
