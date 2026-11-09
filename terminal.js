@@ -109,7 +109,7 @@
   function about() {
     print('i enjoy making language models faster, cheaper, and easier to trust.');
     print('previously cs @ johns hopkins. co-first author at icml 2026.', 'muted');
-    print('focus: kernels, quantization, and serving for llm inference.', 'muted');
+    print('focus: post-training (rlhf, dpo) and efficient llm inference.', 'muted');
   }
 
   function section(name) {
