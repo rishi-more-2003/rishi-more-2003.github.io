@@ -78,8 +78,6 @@
     fun:        ['off the keyboard', () => section('fun')],
     resume:     ['open my resume', resume],
     contact:    ['how to reach me', contact],
-    glyphs:     ['draw the pond in ascii, binary, blocks or kanji', glyphsCmd],
-    decode:     ['see the pond as it really is', decodeCmd],
     feed:       ['drop food for the koi', feed],
     lantern:    ['set a lantern on the water', lantern],
     rest:       ["rest at the sculptor's idol", rest],
@@ -219,23 +217,6 @@
     const on = args[0] ? args[0] !== 'off' : !p.soundOn();
     p.sound(on);
     print(on ? 'sound on. listen when they eat.' : 'sound off.', 'muted');
-  }
-
-  function glyphsCmd(args) {
-    const p = pond();
-    if (!p || !p.view().gl) return print('the pond is drawn plainly here (no webgl).', 'muted');
-    const set = (args[0] || '').toLowerCase();
-    if (!set) return print(`drawing in ${p.view().glyphs}. try: glyphs ascii | binary | blocks | kanji`, 'muted');
-    if (!p.glyphs(set)) return print(`glyphs: no set called ${set}`, 'err');
-    print(set === 'kanji' ? 'the pond is now written in \u9bc9.' : `the pond is now drawn in ${set}.`, 'muted');
-  }
-
-  function decodeCmd() {
-    const p = pond();
-    if (!p || !p.view().gl) return print('nothing to decode: the pond is already plain here.', 'muted');
-    const on = p.view().glyphs !== 'decoded';
-    p.decode(on);
-    print(on ? 'decoding. the text falls away.' : 'back to the signal.', 'muted');
   }
 
   function koiStats() {

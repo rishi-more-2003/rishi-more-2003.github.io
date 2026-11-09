@@ -47,7 +47,7 @@ body {
   height: 100%;
   display: block;
   cursor: crosshair;
-  touch-action: none; /* the pond owns touches: hold to open the lens, tap to feed */
+  touch-action: manipulation;
 }
 
 /* a cinematic vignette and a little film grain, over the water but under the window */
@@ -559,11 +559,10 @@ pre.smi {
   }
 }
 
-/* hud: a live top bar, a telemetry log, the headline, and the dock that picks how the pond is drawn */
+/* hud: a live top bar, a telemetry log, and the headline */
 .hud-top,
 .hud-log,
-.headline,
-.dock {
+.headline {
   position: fixed;
   z-index: 3;
 }
@@ -626,7 +625,7 @@ pre.smi {
 
 .headline {
   left: clamp(16px, 2.4vw, 32px);
-  bottom: clamp(84px, 8vw, 128px);
+  bottom: clamp(28px, 4vw, 56px);
   margin: 0;
   font: 400 clamp(56px, 7vw, 132px)/0.88 var(--display);
   letter-spacing: -0.03em;
@@ -643,55 +642,7 @@ pre.smi {
   color: var(--red);
 }
 
-.dock {
-  left: clamp(16px, 2.4vw, 32px);
-  bottom: clamp(24px, 3vw, 44px);
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgba(201, 164, 92, 0.16);
-  border-radius: 999px;
-  background: rgba(8, 8, 7, 0.72);
-}
-
-.dock[hidden] {
-  display: none;
-}
-
-.dock button {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font: 500 10.5px/1 var(--mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 10px 13px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s ease-out, color 0.2s ease-out;
-}
-
-.dock button[data-set="kanji"] {
-  font: 400 14px/0.75 var(--cjk);
-  letter-spacing: 0;
-}
-
-.dock button:hover {
-  color: var(--ink);
-}
-
-.dock button.is-active {
-  background: var(--gold);
-  color: #120f0a;
-}
-
-.dock button:focus-visible {
-  outline: 1px solid var(--gold);
-  outline-offset: 2px;
-}
-
-/* wide screens: the terminal moves right and the pond takes the stage, with the headline and dock on the left */
+/* wide screens: the terminal moves right and the pond takes the stage, with the headline on the left */
 @media (min-width: 1100px) {
   .stage {
     justify-items: end;
@@ -707,8 +658,7 @@ pre.smi {
 
 @media (max-width: 1099px) {
   .hud-log,
-  .headline,
-  .dock {
+  .headline {
     display: none;
   }
 }

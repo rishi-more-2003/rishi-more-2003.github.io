@@ -1,21 +1,13 @@
-// koi pond: the scene behind the terminal. it paints the water offscreen, then signal.js redraws that
-// picture as live text, with a lens around the cursor that shows the real thing. without webgl the
-// picture is shown as is. exposes window.pond for terminal.js and hud.js.
+// koi pond: the animated canvas behind the terminal. exposes window.pond for terminal.js.
+// the look leans on sekiro: vermilion and ivory koi with long fins, maple leaves, mist, lanterns,
+// fireflies, and a moon on the water that matches tonight's real phase.
 (() => {
   const cv = document.getElementById('pond');
-  if (!cv) return;
-  const scene = document.createElement('canvas'); // the true picture
-  const ctx = scene.getContext('2d');
-  const signal = window.createSignal ? window.createSignal(cv) : null;
-  const flat = signal ? null : cv.getContext('2d');
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const MOTION = REDUCED ? 0.35 : 1;
+  if (!cv || !cv.getContext) return;
+  const ctx = cv.getContext('2d');
+  const MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.35 : 1;
   const hint = document.getElementById('water-hint');
-  if (hint) {
-    const touch = matchMedia('(pointer: coarse)').matches;
-    if (!signal) hint.textContent = touch ? 'tap the water to feed the koi' : 'click the water to feed the koi';
-    else if (touch) hint.textContent = 'touch to decode · tap to feed';
-  }
+  if (hint && matchMedia('(pointer: coarse)').matches) hint.textContent = 'tap the water to feed the koi';
 
   const rand = (a, b) => a + Math.random() * (b - a);
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -91,33 +83,17 @@
   const PHASE = ((((Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 864e5) % SYNODIC) + SYNODIC) % SYNODIC / SYNODIC;
   const LIT = (1 - Math.cos(2 * Math.PI * PHASE)) / 2;
 
-  // the true picture's resolution steps down if frames run long; past that, glow and koi go too
-  const SCALES = [1, 0.8, 0.65, 0.5];
-  let quality = 0, SS = SCALES[0], glowOn = true;
-  let W = 0, H = 0, DPR = 1, water = null;
-
-  // what the glyph pass needs: the lens, the pulse ring, the cell size, and how decoded the view is
-  const lensSize = () => (W < 700 ? 88 : 128);
-  const lens = { x: -1e4, y: -1e4, sx: -1e4, sy: -1e4, r: 0, target: 0 };
-  const ring = { x: 0, y: 0, r: 0, amp: 0 };
-  let cell = 0, cellTarget = 10, decode = 0, decodeTarget = 0, glyphSet = 'ascii', fps = 60, touching = false;
+  // steps down when frames run long: 0 full, 1 dpr 1, 2 no glow, 3 fewer koi and a more opaque window
+  let quality = 0, dprCap = 1.5, glowOn = true;
+  let W = 0, H = 0, DPR = 1;
 
   function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, dprCap);
     W = innerWidth;
     H = innerHeight;
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    cellTarget = W < 700 ? 8 : 10;
-    if (!cell) cell = REDUCED ? cellTarget : cellTarget * 2; // start coarse, then tune in
     cv.width = Math.round(W * DPR);
     cv.height = Math.round(H * DPR);
-    scene.width = Math.max(2, Math.round(W * SS));
-    scene.height = Math.max(2, Math.round(H * SS));
-    ctx.setTransform(SS, 0, 0, SS, 0, 0);
-    water = ctx.createRadialGradient(W * 0.5, H * 0.4, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
-    water.addColorStop(0, '#0d1215');
-    water.addColorStop(0.55, '#070a0b');
-    water.addColorStop(1, '#010101');
-    if (signal) signal.resize(cv.width, cv.height, cellTarget * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
   resize();
   let resizeQueued = false;
@@ -274,41 +250,17 @@
     for (let k = 0; k < 3; k++) ripples.push({ x, y, t: -k * 0.16, dur: 1.6, max: 70 + k * 18, w: 1.2 });
     if (hint) hint.classList.add('gone');
   }
+  cv.addEventListener('pointerdown', e => feed(e.clientX, e.clientY));
 
-  function aim(x, y, open) {
-    lens.x = x;
-    lens.y = y;
-    if (lens.sx < -999) { lens.sx = x; lens.sy = y; }
-    lens.target = open ? lensSize() : 0;
-  }
-
-  // a click feeds the koi and sends a pulse through the text; a held touch opens the lens
-  cv.addEventListener('pointerdown', e => {
-    feed(e.clientX, e.clientY);
-    ring.x = e.clientX;
-    ring.y = e.clientY;
-    ring.r = 0;
-    ring.amp = 1;
-    if (e.pointerType !== 'mouse') {
-      touching = true;
-      aim(e.clientX, e.clientY, true);
-    }
-  });
-
-  // the mouse trails ripples through the water and carries the lens; koi drift toward a still
-  // cursor and bolt from a fast one
+  // the cursor trails ripples through the water; koi drift toward a still one and bolt from a fast one
   addEventListener('pointermove', e => {
-    if (e.pointerType !== 'mouse') {
-      if (touching) aim(e.clientX, e.clientY, true);
-      return;
-    }
+    if (e.pointerType !== 'mouse') return;
     const now = performance.now(), dt = (now - cursor.t) / 1000;
     if (cursor.t && dt > 0) cursor.speed = Math.hypot(e.clientX - cursor.x, e.clientY - cursor.y) / dt;
     cursor.x = e.clientX;
     cursor.y = e.clientY;
     cursor.t = now;
     cursor.over = e.target === cv;
-    aim(e.clientX, e.clientY, cursor.over);
     if (cursor.over && now - cursor.rt > 60 && Math.hypot(cursor.x - cursor.rx, cursor.y - cursor.ry) > 14) {
       cursor.rx = cursor.x;
       cursor.ry = cursor.y;
@@ -316,17 +268,7 @@
       ripples.push({ x: cursor.x, y: cursor.y, t: 0, dur: 0.9, max: 12, w: 0.8 });
     }
   }, { passive: true });
-  const release = e => {
-    if (e.pointerType === 'mouse' || !touching) return;
-    touching = false;
-    lens.target = 0;
-  };
-  addEventListener('pointerup', release);
-  addEventListener('pointercancel', release);
-  document.addEventListener('mouseleave', () => {
-    cursor.over = false;
-    lens.target = 0;
-  });
+  document.addEventListener('mouseleave', () => { cursor.over = false; });
 
   function addLantern(x, y) {
     if (x == null) [x, y] = openWater();
@@ -373,16 +315,6 @@
   function update(dt) {
     const now = performance.now();
     moonT += dt * MOTION;
-
-    const follow = REDUCED ? 1 : 1 - Math.pow(0.0005, dt);
-    lens.sx += (lens.x - lens.sx) * follow;
-    lens.sy += (lens.y - lens.sy) * follow;
-    lens.r += (lens.target - lens.r) * (REDUCED ? 1 : 1 - Math.pow(0.02, dt));
-    ring.r += dt * Math.max(W, H) * 0.55;
-    ring.amp *= Math.pow(0.3, dt);
-    cell += (cellTarget - cell) * (REDUCED ? 1 : 1 - Math.pow(0.08, dt));
-    decode += (decodeTarget - decode) * (REDUCED ? 1 : 1 - Math.pow(0.06, dt));
-
     for (const m of motes) {
       m.x += m.vx * dt;
       m.y += m.vy * dt;
@@ -960,8 +892,7 @@
   }
 
   function render() {
-    ctx.fillStyle = water;
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
     drawMotes();
     for (const k of koi) drawKoi(k, ctx); // sorted deepest first
     drawMoon();
@@ -975,28 +906,8 @@
     drawFireflies();
   }
 
-  // hand the picture to the glyph pass, or show it as is when there's no webgl
-  function present(t) {
-    if (!signal) {
-      flat.drawImage(scene, 0, 0, cv.width, cv.height);
-      return;
-    }
-    const d = DPR;
-    const cx = lens.sx < -999 ? W / 2 : lens.sx, cy = lens.sy < -999 ? H / 2 : lens.sy;
-    // decoding pulls the lens to the center and grows it until the real picture fills the screen
-    const lx = cx + (W / 2 - cx) * decode, ly = cy + (H / 2 - cy) * decode;
-    const lr = lens.r + (Math.hypot(W, H) * 0.6 - lens.r) * decode;
-    signal.draw(scene, {
-      cell: cell * d,
-      lensX: lx * d, lensY: (H - ly) * d, lensR: lr * d,
-      ptrX: cx * d, ptrY: (H - cy) * d, glowR: lens.r * d,
-      ringX: ring.x * d, ringY: (H - ring.y) * d, ring: ring.r * d, ringAmp: ring.amp,
-      time: REDUCED ? 0 : t, flicker: REDUCED ? 0 : 1,
-    });
-  }
-
   function applyQuality() {
-    SS = SCALES[quality];
+    if (quality >= 1) dprCap = 1;
     if (quality >= 2) glowOn = false;
     if (quality >= 3) {
       document.documentElement.classList.add('lowfx');
@@ -1009,32 +920,37 @@
     resize();
   }
 
-  const start = performance.now();
-  let last = start, times = [];
+  let last = performance.now(), slowMs = 0, slowN = 0, slowStart = last, fps = 60, fpsMs = 0, fpsN = 0;
   function frame(now) {
     const ms = now - last;
     last = now;
-    if (ms < 100) times.push(ms);
-    if (times.length >= 40) {
-      const avg = times.reduce((a, b) => a + b, 0) / times.length;
-      times = [];
-      fps = Math.round(1000 / avg);
-      if (now - start > 3000 && avg > 21 && quality < SCALES.length - 1) {
-        quality++;
-        applyQuality();
+    if (ms < 100) {
+      fpsMs += ms;
+      if (++fpsN >= 30) {
+        fps = Math.round((1000 * fpsN) / fpsMs);
+        fpsMs = 0;
+        fpsN = 0;
+      }
+    }
+    if (now > 3000 && ms < 100 && quality < 3) {
+      slowMs += ms;
+      slowN++;
+      if (now - slowStart > 2000) {
+        if (slowN > 20 && slowMs / slowN > 21) { quality++; applyQuality(); }
+        slowMs = 0;
+        slowN = 0;
+        slowStart = now;
       }
     }
     update(Math.min(0.05, ms / 1000));
     render();
-    present((now - start) / 1000);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 
-  const announce = () => dispatchEvent(new CustomEvent('pond:view'));
   window.pond = {
     feed: () => feed(),
-    stats: () => ({ koi: koi.length, fed, eaten, golden: goldSpawned }),
+    stats: () => ({ koi: koi.length, fed, eaten, golden: goldSpawned, fps, quality, lanterns: lanterns.length }),
     rain: () => (raining = !raining),
     quality: () => quality,
     lantern: () => { addLantern(); pluck(SCALE[7], 0.06); },
@@ -1048,19 +964,5 @@
       return soundOn;
     },
     soundOn: () => soundOn,
-    glyphs: set => {
-      if (!signal || !signal.setGlyphs(set)) return false;
-      glyphSet = set;
-      decodeTarget = 0;
-      announce();
-      return true;
-    },
-    decode: on => {
-      if (!signal) return false;
-      decodeTarget = on ? 1 : 0;
-      announce();
-      return true;
-    },
-    view: () => ({ gl: !!signal, glyphs: decodeTarget ? 'decoded' : glyphSet, cell, lens: lens.r > 1, decode, scale: SS, fps }),
   };
 })();

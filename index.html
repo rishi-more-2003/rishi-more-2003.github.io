@@ -25,11 +25,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
-  <link rel="stylesheet" href="style.css?v=8">
-  <script src="signal.js?v=1" defer></script>
-  <script src="pond.js?v=5" defer></script>
-  <script src="terminal.js?v=6" defer></script>
-  <script src="hud.js?v=1" defer></script>
+  <link rel="stylesheet" href="style.css?v=9">
+  <script src="pond.js?v=6" defer></script>
+  <script src="terminal.js?v=7" defer></script>
+  <script src="hud.js?v=2" defer></script>
   <noscript><style>#sections { display: block !important; } .prompt, .chips, .js-only, .water-hint { display: none !important; }</style></noscript>
 
   <script type="application/ld+json">
@@ -62,13 +61,6 @@
   </header>
   <pre class="hud-log" id="hud-log" aria-hidden="true"></pre>
   <p class="headline"><span>signal,</span> <em>not noise.</em></p>
-  <div class="dock" id="dock" role="radiogroup" aria-label="how the pond is drawn">
-    <button type="button" role="radio" aria-checked="true" class="is-active" data-set="ascii">ascii</button>
-    <button type="button" role="radio" aria-checked="false" data-set="binary">binary</button>
-    <button type="button" role="radio" aria-checked="false" data-set="blocks">blocks</button>
-    <button type="button" role="radio" aria-checked="false" data-set="kanji" aria-label="kanji" lang="ja">鯉</button>
-    <button type="button" role="radio" aria-checked="false" data-set="decoded">decoded</button>
-  </div>
 
   <div class="stage">
     <main class="window" id="term">
@@ -163,6 +155,6 @@
     </main>
   </div>
 
-  <p class="water-hint" id="water-hint">move to decode · click to feed</p>
+  <p class="water-hint" id="water-hint">click the water to feed the koi</p>
 </body>
 </html>
