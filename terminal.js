@@ -151,7 +151,7 @@
       ['koi', String(s.koi)],
       ['fed', `${s.fed} time${s.fed === 1 ? '' : 's'}`],
       ['eaten', `${s.eaten} pellet${s.eaten === 1 ? '' : 's'}`],
-      ['golden', s.golden ? 'spotted' : '???'],
+      ['great', s.golden ? 'carp sighted' : '???'],
     ]);
   }
 
@@ -299,7 +299,7 @@
   });
 
   addEventListener('pond:golden', () => {
-    print('a golden koi surfaced.', 'gold');
+    print('a great carp rises from the deep.', 'gold');
     scrollDown();
   });
 
