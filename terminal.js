@@ -16,17 +16,6 @@
   // the canvas has id="pond", so window.pond is that element until pond.js swaps in the api
   const pond = () => (window.pond && typeof window.pond.feed === 'function' ? window.pond : null);
 
-  // title card: any key or click skips it, then it gets out of the way
-  const intro = document.getElementById('intro');
-  if (intro && root.classList.contains('intro-on')) {
-    const skip = () => root.classList.add('intro-skip');
-    addEventListener('keydown', skip, { once: true });
-    addEventListener('pointerdown', skip, { once: true });
-    intro.addEventListener('animationend', e => { if (e.target === intro) intro.remove(); });
-  } else if (intro) {
-    intro.remove();
-  }
-
   const files = {
     'about.md': 'about',
     'research.md': 'research',

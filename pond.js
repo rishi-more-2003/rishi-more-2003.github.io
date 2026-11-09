@@ -34,6 +34,15 @@
     return c;
   }
 
+  // fins fade toward their tips. they're drawn in unit space, so one gradient per variety fits every fin
+  function finGradient(rgb, a) {
+    const g = ctx.createLinearGradient(0, 0, 1, 0);
+    g.addColorStop(0, `rgba(${rgb}, ${a})`);
+    g.addColorStop(0.6, `rgba(${rgb}, ${a * 0.55})`);
+    g.addColorStop(1, `rgba(${rgb}, ${a * 0.12})`);
+    return g;
+  }
+
   // a maple leaf, five pointed lobes around a stem, built once and stamped everywhere
   const MAPLE = (() => {
     const p = new Path2D();
@@ -54,9 +63,9 @@
   const INK = '#15100d';
   const CRIMSON = '#d23d27';
   const VARIETIES = {
-    red:    { body: '#d8432c', edge: 'rgba(36, 8, 4, 0.5)', shine: 'rgba(255, 168, 128, 0.3)', fin: 'rgba(222, 88, 60, 0.3)', ray: 'rgba(255, 188, 160, 0.32)', patch: '#efe4d2', glow: sprite('230, 70, 40', 0.42) },
-    kohaku: { body: '#ece2d0', edge: 'rgba(28, 20, 14, 0.45)', shine: 'rgba(255, 255, 250, 0.32)', fin: 'rgba(236, 226, 210, 0.24)', ray: 'rgba(255, 250, 240, 0.36)', patch: CRIMSON, glow: sprite('230, 190, 160', 0.2) },
-    gold:   { body: '#d9a440', edge: 'rgba(48, 28, 6, 0.5)', shine: 'rgba(255, 228, 160, 0.38)', fin: 'rgba(230, 178, 88, 0.3)', ray: 'rgba(255, 225, 160, 0.38)', patch: '#efe4d2', glow: sprite('230, 170, 60', 0.6) },
+    red:    { body: '#d8432c', edge: 'rgba(36, 8, 4, 0.45)', shine: 'rgba(255, 170, 130, 0.2)', gloss: 'rgba(255, 196, 168, 0.22)', fin: finGradient('226, 92, 64', 0.5), ray: 'rgba(255, 190, 162, 0.3)', patch: '#efe4d2', glow: sprite('230, 70, 40', 0.42) },
+    kohaku: { body: '#ece2d0', edge: 'rgba(28, 20, 14, 0.4)', shine: 'rgba(255, 255, 250, 0.22)', gloss: 'rgba(255, 255, 255, 0.3)', fin: finGradient('238, 228, 212', 0.38), ray: 'rgba(255, 250, 240, 0.34)', patch: CRIMSON, glow: sprite('230, 190, 160', 0.2) },
+    gold:   { body: '#d9a440', edge: 'rgba(48, 28, 6, 0.45)', shine: 'rgba(255, 228, 160, 0.24)', gloss: 'rgba(255, 240, 200, 0.3)', fin: finGradient('232, 182, 92', 0.5), ray: 'rgba(255, 225, 160, 0.36)', patch: '#efe4d2', glow: sprite('230, 170, 60', 0.6) },
   };
   // mostly vermilion, a few kohaku, one showa inked in black, one tancho with a red crown
   const LINEUP = ['red', 'kohaku', 'showa', 'red', 'tancho', 'red', 'kohaku', 'red'];
@@ -68,18 +77,13 @@
   const LANTERN_GLOW = sprite('255, 176, 96', 0.6);
   const SEGS = 13;
   const GOLD_AT = 24;
-  const DEEP_CUT = 0.55;   // koi deeper than this render into the low-res layer
-  const DEEP_SCALE = 0.35; // drawing small and scaling up is a cheap blur (ctx.filter was the other big cost)
 
   // tonight's moon: 0 is new, 0.5 is full, counted from the new moon of 2000-01-06 18:14 utc
   const SYNODIC = 29.530588853;
   const PHASE = ((((Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 864e5) % SYNODIC) + SYNODIC) % SYNODIC / SYNODIC;
   const LIT = (1 - Math.cos(2 * Math.PI * PHASE)) / 2;
 
-  const deep = document.createElement('canvas');
-  const dctx = deep.getContext('2d');
-
-  // steps down when frames run long: 0 full, 1 dpr 1, 2 no glow, 3 fewer koi and no glass blur
+  // steps down when frames run long: 0 full, 1 dpr 1, 2 no glow, 3 fewer koi and a more opaque window
   let quality = 0, dprCap = 1.5, glowOn = true;
   let W = 0, H = 0, DPR = 1;
 
@@ -90,8 +94,6 @@
     cv.width = Math.round(W * DPR);
     cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    deep.width = Math.max(1, Math.round(W * DEEP_SCALE));
-    deep.height = Math.max(1, Math.round(H * DEEP_SCALE));
   }
   resize();
   let resizeQueued = false;
@@ -105,16 +107,20 @@
     const kind = o.kind || 'red';
     const v = VARIETIES[kind === 'tancho' ? 'kohaku' : kind === 'showa' ? 'red' : kind];
     const depth = o.depth ?? rand(0.05, 1);
-    const scale = lerp(1.25, 0.7, depth) * (o.big ? 1.6 : 1) * (W < 600 ? 0.72 : 1);
+    const scale = lerp(1.25, 0.72, depth) * (o.big ? 1.6 : 1) * (W < 600 ? 0.72 : 1);
     const angle = o.angle ?? rand(0, Math.PI * 2);
     const x = o.x ?? rand(0.15, 0.85) * W;
     const y = o.y ?? rand(0.15, 0.85) * H;
     const segLen = 8 * scale;
     const spine = Array.from({ length: SEGS }, (_, i) => ({ x: x - Math.cos(angle) * segLen * i, y: y - Math.sin(angle) * segLen * i }));
+    // each marking is a few overlapping blobs, so the edges look organic instead of oval
     const patches = [];
     const add = (n, color) => {
       for (let j = 0; j < n; j++) {
-        patches.push({ i: 1 + Math.floor(Math.random() * (SEGS - 5)), off: rand(-0.5, 0.5), rx: rand(6, 12), ry: rand(5, 9), rot: rand(0, Math.PI), color });
+        const rx = rand(6, 11), ry = rand(5, 8);
+        const blobs = [{ dx: 0, dy: 0, rx, ry }];
+        for (let q = 0; q < 2; q++) blobs.push({ dx: rand(-0.8, 0.8) * rx, dy: rand(-0.5, 0.5) * ry, rx: rx * rand(0.5, 0.75), ry: ry * rand(0.5, 0.75) });
+        patches.push({ i: 1 + Math.floor(Math.random() * (SEGS - 5)), off: rand(-0.5, 0.5), rot: rand(-0.4, 0.4), blobs, color });
       }
     };
     if (kind === 'kohaku') add(2 + Math.floor(Math.random() * 2), v.patch);
@@ -498,52 +504,55 @@
 
   // a long see-through fin with rays; bend swings the tip so it trails like silk
   function fin(c, x, y, ang, len, wid, v, bend) {
+    const w = wid / len, b = bend / len;
     c.save();
     c.translate(x, y);
     c.rotate(ang);
+    c.scale(len, len);
     c.beginPath();
     c.moveTo(0, 0);
-    c.bezierCurveTo(len * 0.3, -wid, len * 0.85, -wid * 0.8 + bend, len, bend);
-    c.bezierCurveTo(len * 0.9, wid * 0.7 + bend, len * 0.3, wid * 0.9, 0, 0);
+    c.bezierCurveTo(0.3, -w, 0.85, -w * 0.8 + b, 1, b);
+    c.bezierCurveTo(0.9, w * 0.7 + b, 0.3, w * 0.9, 0, 0);
     c.fillStyle = v.fin;
     c.fill();
     c.strokeStyle = v.ray;
-    c.lineWidth = 0.6;
+    c.lineWidth = 0.6 / len;
     c.beginPath();
     for (const f of [-0.5, -0.17, 0.17, 0.5]) {
-      c.moveTo(len * 0.08, 0);
-      c.quadraticCurveTo(len * 0.5, wid * f, len * 0.92, wid * f * 0.7 + bend);
+      c.moveTo(0.08, 0);
+      c.quadraticCurveTo(0.5, w * f, 0.92, w * f * 0.7 + b);
     }
     c.stroke();
     c.restore();
   }
 
-  // butterfly tail: two long lobes that ripple out of step
+  // butterfly tail: two long lobes that ripple out of step and fade toward the tips
   function tail(c, k, pts, n, s) {
     const tp = pts[n - 1], tl = 46 * s;
     const ang = Math.atan2(-tp.ty, -tp.tx) + Math.sin(k.phase - n * 0.5 + 0.8) * 0.38;
-    const f = Math.sin(k.phase * 1.1) * 0.14, up = 1 + f, dn = 1 - f;
+    const f = Math.sin(k.phase * 1.1) * 0.14, up = 1 + f, dn = 1 - f, b0 = -2 * s / tl;
     c.save();
     c.translate(tp.x, tp.y);
     c.rotate(ang);
+    c.scale(tl, tl);
     c.beginPath();
-    c.moveTo(-2 * s, 0);
-    c.bezierCurveTo(tl * 0.3, -tl * 0.1 * up, tl * 0.62, -tl * 0.56 * up, tl, -tl * 0.5 * up);
-    c.quadraticCurveTo(tl * 1.1, -tl * 0.38 * up, tl * 0.9, -tl * 0.24 * up);
-    c.quadraticCurveTo(tl * 0.78, -tl * 0.12 * up, tl * 0.84, -tl * 0.03);
-    c.quadraticCurveTo(tl * 0.72, 0, tl * 0.84, tl * 0.03);
-    c.quadraticCurveTo(tl * 0.78, tl * 0.12 * dn, tl * 0.9, tl * 0.24 * dn);
-    c.quadraticCurveTo(tl * 1.1, tl * 0.38 * dn, tl, tl * 0.5 * dn);
-    c.bezierCurveTo(tl * 0.62, tl * 0.56 * dn, tl * 0.3, tl * 0.1 * dn, -2 * s, 0);
+    c.moveTo(b0, 0);
+    c.bezierCurveTo(0.3, -0.1 * up, 0.62, -0.56 * up, 1, -0.5 * up);
+    c.quadraticCurveTo(1.1, -0.38 * up, 0.9, -0.24 * up);
+    c.quadraticCurveTo(0.78, -0.12 * up, 0.84, -0.03);
+    c.quadraticCurveTo(0.72, 0, 0.84, 0.03);
+    c.quadraticCurveTo(0.78, 0.12 * dn, 0.9, 0.24 * dn);
+    c.quadraticCurveTo(1.1, 0.38 * dn, 1, 0.5 * dn);
+    c.bezierCurveTo(0.62, 0.56 * dn, 0.3, 0.1 * dn, b0, 0);
     c.fillStyle = k.v.fin;
     c.fill();
     c.strokeStyle = k.v.ray;
-    c.lineWidth = 0.6;
+    c.lineWidth = 0.6 / tl;
     c.beginPath();
     for (const r of [-0.46, -0.3, -0.14, 0.14, 0.3, 0.46]) {
       const m = r < 0 ? up : dn;
       c.moveTo(0, 0);
-      c.quadraticCurveTo(tl * 0.5, tl * r * 0.6 * m, tl * 0.92, tl * r * m);
+      c.quadraticCurveTo(0.5, r * 0.6 * m, 0.92, r * m);
     }
     c.stroke();
     c.restore();
@@ -591,7 +600,8 @@
     }
 
     c.save();
-    c.globalAlpha = k.alpha * lerp(1, 0.5, k.depth);
+    // depth reads through size and dimness alone; everything stays sharp
+    c.globalAlpha = k.alpha * lerp(1, 0.55, k.depth);
 
     if (glowOn) {
       const mid = pts[5], a = Math.atan2(pts[0].y - pts[9].y, pts[0].x - pts[9].x);
@@ -611,12 +621,12 @@
     fin(c, vf.x + vf.nx * vf.w * 0.7, vf.y + vf.ny * vf.w * 0.7, vback - 0.75 + flap * 0.5, 12 * s, 4.5 * s, v, 0);
     fin(c, vf.x - vf.nx * vf.w * 0.7, vf.y - vf.ny * vf.w * 0.7, vback + 0.75 - flap * 0.5, 12 * s, 4.5 * s, v, 0);
 
-    // body, then an ink edge like a brush painting
+    // body, then a fine ink edge like a brush painting
     bodyPath(c, pts, n, 1, s);
     c.fillStyle = v.body;
     c.fill();
     c.strokeStyle = v.edge;
-    c.lineWidth = 1.1 * s;
+    c.lineWidth = 0.9 * s;
     c.stroke();
 
     if (k.patches.length || k.cap) {
@@ -624,9 +634,15 @@
       c.clip();
       for (const pa of k.patches) {
         const p = pts[pa.i];
+        const cx = p.x + p.nx * p.w * pa.off, cy = p.y + p.ny * p.w * pa.off;
+        const ang = Math.atan2(p.ty, p.tx) + pa.rot;
         c.fillStyle = pa.color;
         c.beginPath();
-        c.ellipse(p.x + p.nx * p.w * pa.off, p.y + p.ny * p.w * pa.off, pa.rx * s, pa.ry * s, Math.atan2(p.ty, p.tx) + pa.rot, 0, Math.PI * 2);
+        for (const b of pa.blobs) {
+          const bx = cx + (p.tx * b.dx + p.nx * b.dy) * s, by = cy + (p.ty * b.dx + p.ny * b.dy) * s;
+          c.moveTo(bx + Math.cos(ang) * b.rx * s, by + Math.sin(ang) * b.rx * s);
+          c.ellipse(bx, by, b.rx * s, b.ry * s, ang, 0, Math.PI * 2);
+        }
         c.fill();
       }
       if (k.cap) {
@@ -639,9 +655,17 @@
       c.restore();
     }
 
-    // a narrower, lighter body down the middle makes it read as round
-    bodyPath(c, pts, n - 4, 0.4, s);
+    // two soft passes of light down the back make the body read as round and wet
+    bodyPath(c, pts, n - 3, 0.62, s);
     c.fillStyle = v.shine;
+    c.fill();
+    bodyPath(c, pts, n - 6, 0.3, s);
+    c.fillStyle = v.gloss;
+    c.fill();
+    const hg = pts[1];
+    c.fillStyle = 'rgba(255, 255, 255, 0.16)';
+    c.beginPath();
+    c.ellipse(hg.x + hg.tx * 1.5 * s, hg.y + hg.ty * 1.5 * s, 3.2 * s, 1.6 * s, Math.atan2(hg.ty, hg.tx), 0, Math.PI * 2);
     c.fill();
 
     // dorsal fin, seen from above as a thin waving ridge
@@ -868,13 +892,7 @@
   function render() {
     ctx.clearRect(0, 0, W, H);
     drawMotes();
-    dctx.setTransform(1, 0, 0, 1, 0, 0);
-    dctx.clearRect(0, 0, deep.width, deep.height);
-    dctx.setTransform(DEEP_SCALE, 0, 0, DEEP_SCALE, 0, 0);
-    let anyDeep = false;
-    for (const k of koi) if (k.depth > DEEP_CUT) { drawKoi(k, dctx); anyDeep = true; }
-    if (anyDeep) ctx.drawImage(deep, 0, 0, W, H);
-    for (const k of koi) if (k.depth <= DEEP_CUT) drawKoi(k, ctx);
+    for (const k of koi) drawKoi(k, ctx); // sorted deepest first
     drawMoon();
     for (const l of lanterns) drawLantern(l);
     drawBubbles();
