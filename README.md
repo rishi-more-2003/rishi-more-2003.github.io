@@ -21,7 +21,7 @@ resume_mle.pdf    the resume the nav links to
 - the terminal prints sections straight out of `#sections` in `index.html`, so editing content means editing html, not js. it also means google and no-js visitors still see all of it.
 - the only third-party request is instrument serif from google fonts.
 - `pond.js` steps its own quality down (resolution, then glow, then koi count) if frames run long, so it stays smooth on weak machines.
-- favicon is an inline svg cloud, so there's no `favicon.ico` to look for.
+- favicon is an inline svg emoji (🎏, a carp streamer, the closest thing to a koi), so there's no `favicon.ico` to look for.
 
 ## license
 
