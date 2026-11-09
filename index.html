@@ -22,9 +22,18 @@
   <base target="_blank">
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
-  <link rel="stylesheet" href="style.css?v=4">
-  <script src="pond.js?v=2" defer></script>
-  <script src="terminal.js?v=3" defer></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script>
+    // the first visit of a session plays the title card; reduced motion skips it
+    try {
+      if (!sessionStorage.getItem('seen-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('intro-on');
+        sessionStorage.setItem('seen-intro', '1');
+      }
+    } catch (e) {}
+  </script>
+  <script src="pond.js?v=3" defer></script>
+  <script src="terminal.js?v=4" defer></script>
   <noscript><style>#sections { display: block !important; } .prompt, .chips, .js-only, .water-hint { display: none !important; }</style></noscript>
 
   <script type="application/ld+json">
@@ -48,6 +57,15 @@
   </script>
 </head>
 <body>
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-inner">
+      <span class="intro-seal">R</span>
+      <div class="intro-name">rishi</div>
+      <div class="intro-rule"></div>
+      <div class="intro-sub">teaching llms to behave, then making them fast</div>
+    </div>
+  </div>
+
   <canvas id="pond" aria-hidden="true"></canvas>
 
   <div class="stage">
@@ -70,7 +88,7 @@
               <dt>base</dt><dd>sunnyvale, california</dd>
               <dt>prev</dt><dd>intersystems, apple ml, jhu dsai, mastek</dd>
               <dt>uni</dt><dd>johns hopkins (cs)</dd>
-              <dt>focus</dt><dd>post-training (rlhf, dpo) + efficient inference</dd>
+              <dt>focus</dt><dd>teaching llms to behave, then making them fast</dd>
             </dl>
             <nav class="links" aria-label="links">
               <!-- icons from lucide.dev, isc license -->
@@ -97,6 +115,8 @@
           <section data-section="projects">
             <h2>side projects</h2>
             <ul>
+              <li><a href="https://github.com/rishi-more-2003/conformal-serve">an llm server that stops thinking once it's sure enough</a></li>
+              <li><a href="https://github.com/rishi-more-2003/kv-roofline">fitting 580k tokens of context on an 8gb gpu</a></li>
               <li><a href="https://github.com/rishi-more-2003/post-training-failure-evals">finding where "aligned" models secretly get worse</a></li>
               <li><a href="https://github.com/rishi-more-2003/vllm-kernel-profiler">what is my gpu doing between tokens?</a></li>
               <li><a href="https://github.com/rishi-more-2003/asym-rel-eff-kt">what if ai agents could mentor each other?</a></li>
@@ -106,9 +126,9 @@
           <section data-section="experience">
             <h2>experience</h2>
             <ul>
-              <li>summer 2025 @ jhu dsai <span class="meta">grad research</span></li>
-              <li>fall 2024 @ jhu clsp <span class="meta">grad research</span></li>
-              <li>summer 2023 @ mastek <span class="meta">mle intern</span></li>
+              <li>summer 2026 @ intersystems <span class="meta">sde, ai experience</span></li>
+              <li>2025–26 @ apple ml research + jhu dsai <span class="meta">grad research, llm inference</span></li>
+              <li>2022–23 @ mastek <span class="meta">mle co-op</span></li>
             </ul>
           </section>
           <section data-section="fun">
@@ -136,6 +156,7 @@
         <button type="button" data-cmd="experience">experience</button>
         <button type="button" data-cmd="contact">contact</button>
         <button type="button" data-cmd="feed">feed</button>
+        <button type="button" data-cmd="lantern">lantern</button>
       </div>
     </main>
   </div>

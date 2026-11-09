@@ -1,5 +1,6 @@
 // koi pond: the animated canvas behind the terminal. exposes window.pond for terminal.js.
-// the look leans on sekiro: vermilion and ivory koi with long fins, maple leaves, mist, and a moon on the water.
+// the look leans on sekiro: vermilion and ivory koi with long fins, maple leaves, mist, lanterns,
+// fireflies, and a moon on the water that matches tonight's real phase.
 (() => {
   const cv = document.getElementById('pond');
   if (!cv || !cv.getContext) return;
@@ -63,10 +64,17 @@
   const FOOD_GLOW = sprite('235, 185, 100', 0.9);
   const MIST = sprite('205, 212, 216', 1);
   const MOON_GLOW = sprite('236, 226, 205', 0.5);
+  const FIREFLY = sprite('240, 214, 140', 0.9);
+  const LANTERN_GLOW = sprite('255, 176, 96', 0.6);
   const SEGS = 13;
   const GOLD_AT = 24;
   const DEEP_CUT = 0.55;   // koi deeper than this render into the low-res layer
   const DEEP_SCALE = 0.35; // drawing small and scaling up is a cheap blur (ctx.filter was the other big cost)
+
+  // tonight's moon: 0 is new, 0.5 is full, counted from the new moon of 2000-01-06 18:14 utc
+  const SYNODIC = 29.530588853;
+  const PHASE = ((((Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 864e5) % SYNODIC) + SYNODIC) % SYNODIC / SYNODIC;
+  const LIT = (1 - Math.cos(2 * Math.PI * PHASE)) / 2;
 
   const deep = document.createElement('canvas');
   const dctx = deep.getContext('2d');
@@ -139,15 +147,79 @@
     x: rand(0, W), y: rand(0, H), r: rand(240, 460),
     vx: rand(3, 8) * (Math.random() < 0.5 ? -1 : 1), vy: rand(-2, 2), a: rand(0.035, 0.065),
   }));
+  const fireflies = Array.from({ length: W < 600 ? 8 : 16 }, () => ({
+    x: rand(0, W), y: rand(0, H), a: rand(0, 6.28), sp: rand(8, 18), turn: 0, ph: rand(0, 6.28), rate: rand(0.6, 1.4),
+  }));
   const motes = Array.from({ length: 50 }, () => ({
     x: Math.random(), y: Math.random(), z: Math.random(), vx: rand(-0.003, 0.003), vy: rand(-0.006, -0.0015),
   }));
+  const lanterns = [];
   const food = [];
   const ripples = [];
   const bubbles = [];
   let fed = 0, eaten = 0, goldSpawned = false, goldPending = false, raining = false, rainAcc = 0, idleBubble = 2, moonT = 0;
+  let gatherUntil = 0, gatherX = 0, gatherY = 0, scatterUntil = 0;
+  const cursor = { x: 0, y: 0, t: 0, speed: 0, over: false, rx: -1e4, ry: -1e4, rt: 0 };
 
-  // a random spot the terminal isn't covering, so you can watch them eat
+  // sound is opt-in from the terminal: koto-ish plucks when koi eat, a temple bell for the big moments
+  const SCALE = [293.66, 311.13, 392, 440, 523.25, 587.33, 622.25, 783.99]; // miyako-bushi on d
+  let audio = null, soundOn = false, lastPluck = 0;
+
+  function ensureAudio() {
+    if (!audio) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audio = new AC();
+    }
+    if (audio.state === 'suspended') audio.resume();
+    return audio;
+  }
+
+  function pluck(freq, gain = 0.08) {
+    if (!soundOn || !audio) return;
+    const t = audio.currentTime;
+    if (t - lastPluck < 0.09) return;
+    lastPluck = t;
+    const out = audio.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(gain, t + 0.006);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+    const lp = audio.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(3600, t);
+    lp.frequency.exponentialRampToValueAtTime(600, t + 0.6);
+    out.connect(lp).connect(audio.destination);
+    for (const [mult, type, level] of [[1, 'triangle', 1], [2.01, 'sine', 0.3], [3.02, 'sine', 0.12]]) {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type;
+      o.frequency.value = freq * mult;
+      g.gain.value = level;
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 1.9);
+    }
+  }
+
+  function bell(f = 98) {
+    if (!soundOn || !audio) return;
+    const t = audio.currentTime;
+    const out = audio.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 5.5);
+    out.connect(audio.destination);
+    for (const [mult, level] of [[1, 1], [2.76, 0.4], [5.4, 0.18], [8.9, 0.08]]) {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = 'sine';
+      o.frequency.value = f * mult;
+      g.gain.value = level;
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 5.6);
+    }
+  }
+
+  // a random spot the terminal isn't covering, so you can watch what happens there
   function openWater() {
     const r = document.getElementById('term')?.getBoundingClientRect();
     for (let i = 0; i < 16; i++) {
@@ -174,6 +246,32 @@
   }
   cv.addEventListener('pointerdown', e => feed(e.clientX, e.clientY));
 
+  // the cursor trails ripples through the water; koi drift toward a still one and bolt from a fast one
+  addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse') return;
+    const now = performance.now(), dt = (now - cursor.t) / 1000;
+    if (cursor.t && dt > 0) cursor.speed = Math.hypot(e.clientX - cursor.x, e.clientY - cursor.y) / dt;
+    cursor.x = e.clientX;
+    cursor.y = e.clientY;
+    cursor.t = now;
+    cursor.over = e.target === cv;
+    if (cursor.over && now - cursor.rt > 60 && Math.hypot(cursor.x - cursor.rx, cursor.y - cursor.ry) > 14) {
+      cursor.rx = cursor.x;
+      cursor.ry = cursor.y;
+      cursor.rt = now;
+      ripples.push({ x: cursor.x, y: cursor.y, t: 0, dur: 0.9, max: 12, w: 0.8 });
+    }
+  }, { passive: true });
+  document.addEventListener('mouseleave', () => { cursor.over = false; });
+
+  function addLantern(x, y) {
+    if (x == null) [x, y] = openWater();
+    if (lanterns.length >= 10) lanterns.shift();
+    lanterns.push({ x, y, vx: rand(2, 6), vy: rand(-1.5, 1.5), rot: rand(-0.3, 0.3), ph: rand(0, 6.28), born: 0 });
+  }
+  addLantern();
+  addLantern();
+
   function bubbleFrom(k, count) {
     const d = k.segLen * 1.6;
     for (let i = 0; i < count; i++) {
@@ -186,7 +284,7 @@
     }
   }
 
-  // the easter egg: a great carp, twice the size and half the hurry
+  // the easter egg: a great carp, much bigger and in no hurry
   function spawnGold() {
     goldSpawned = true;
     const spots = [
@@ -196,10 +294,20 @@
     const [x, y, angle] = pick(spots);
     koi.push(makeKoi({ kind: 'gold', x, y, angle, depth: 0.02, big: true }));
     sortKoi();
+    bell();
     dispatchEvent(new CustomEvent('pond:golden'));
   }
 
+  // koi gather in open water near the terminal, as if around a shrine
+  function gather(seconds) {
+    const r = document.getElementById('term')?.getBoundingClientRect();
+    gatherX = W / 2;
+    gatherY = !r ? H * 0.75 : r.bottom + 90 < H ? r.bottom + 70 : Math.max(60, r.top - 70);
+    gatherUntil = performance.now() + seconds * 1000;
+  }
+
   function update(dt) {
+    const now = performance.now();
     moonT += dt * MOTION;
     for (const m of motes) {
       m.x += m.vx * dt;
@@ -227,6 +335,27 @@
       m.y += m.vy * dt * MOTION;
       if (m.x < -m.r) m.x = W + m.r; else if (m.x > W + m.r) m.x = -m.r;
       if (m.y < -m.r) m.y = H + m.r; else if (m.y > H + m.r) m.y = -m.r;
+    }
+    for (const f of fireflies) {
+      f.turn = clamp(f.turn + rand(-1, 1) * dt, -0.8, 0.8);
+      f.a += f.turn * dt;
+      f.x += Math.cos(f.a) * f.sp * dt * MOTION;
+      f.y += Math.sin(f.a) * f.sp * dt * MOTION;
+      f.ph += dt * f.rate;
+      if (f.x < -20) f.x = W + 20; else if (f.x > W + 20) f.x = -20;
+      if (f.y < -20) f.y = H + 20; else if (f.y > H + 20) f.y = -20;
+    }
+    for (let i = lanterns.length - 1; i >= 0; i--) {
+      const l = lanterns[i];
+      l.born = Math.min(1, l.born + dt * 0.8);
+      l.ph += dt;
+      l.x += l.vx * dt * MOTION;
+      l.y += (l.vy + Math.sin(moonT * 0.5 + l.ph) * 1.5) * dt * MOTION;
+      if (l.x > W + 60) {
+        if (lanterns.length > 2) lanterns.splice(i, 1);
+        else l.x = -60;
+      }
+      if (l.y < -60) l.y = H + 60; else if (l.y > H + 60) l.y = -60;
     }
     for (let i = food.length - 1; i >= 0; i--) {
       const f = food[i];
@@ -272,7 +401,11 @@
         const d = Math.hypot(f.x - k.x, f.y - k.y);
         if (d < best) { best = d; target = f; }
       }
-      if (target) {
+      if (now < scatterUntil) {
+        desired = Math.atan2(k.y - H / 2, k.x - W / 2);
+        turn = 5;
+        spd = k.base * 2.5;
+      } else if (target) {
         desired = Math.atan2(target.y - k.y, target.x - k.x);
         turn = 4;
         spd = k.base * 2.8 * clamp(best / 110, 0.4, 1); // ease off on arrival so they don't orbit the pellet
@@ -282,8 +415,26 @@
           k.boost = 1;
           k.gulp = 1;
           bubbleFrom(k, 1);
+          pluck(pick(SCALE));
           ripples.push({ x: target.x, y: target.y, t: 0, dur: 0.6, max: 16, w: 1 });
           if (!goldSpawned && eaten >= GOLD_AT) goldPending = true;
+        }
+      } else if (now < gatherUntil) {
+        if (Math.hypot(gatherX - k.x, gatherY - k.y) > 60) {
+          desired = Math.atan2(gatherY - k.y, gatherX - k.x);
+          turn = 2;
+          spd = k.base * 1.4;
+        }
+      } else if (cursor.over) {
+        const dx = cursor.x - k.x, dy = cursor.y - k.y, d = Math.hypot(dx, dy), idle = (now - cursor.t) / 1000;
+        if (idle < 0.1 && cursor.speed > 900 && d < 150) {
+          desired = Math.atan2(-dy, -dx);
+          turn = 5;
+          k.boost = Math.max(k.boost, 0.8);
+        } else if (idle > 0.8 && idle < 12 && d > 70 && d < 340) {
+          desired = Math.atan2(dy, dx);
+          turn = 1.6;
+          spd = k.base * 0.9;
         }
       }
 
@@ -519,28 +670,59 @@
     ctx.globalAlpha = 1;
   }
 
-  // the moon, broken into wobbling bands on the water
+  // the moon, broken into wobbling bands on the water and lit only as much as tonight's
   function drawMoon() {
     const x = W * 0.82, y = H * 0.17, r = Math.min(W, H) * 0.045 + 18;
-    ctx.globalAlpha = 0.55;
+    ctx.globalAlpha = 0.55 * (0.25 + 0.75 * LIT);
     ctx.drawImage(MOON_GLOW, x - r * 3.2, y - r * 2.2, r * 6.4, r * 4.4);
     ctx.strokeStyle = 'rgb(238, 228, 206)';
     ctx.lineCap = 'round';
     ctx.lineWidth = r * 0.07;
+    const g = r * 0.06;
     for (let i = -6; i <= 6; i++) {
       const yy = y + i * r * 0.16;
       const half = Math.sqrt(Math.max(0, 1 - (i / 6.5) ** 2)) * r;
       const off = Math.sin(moonT * 1.2 + i * 0.85) * r * 0.08;
-      const gap = Math.sin(moonT * 0.7 + i * 1.3) * half * 0.3;
-      ctx.globalAlpha = 0.12 + 0.2 * (1 - Math.abs(i) / 7);
+      ctx.globalAlpha = 0.05; // earthshine: the dark side still shows, faintly
       ctx.beginPath();
       ctx.moveTo(x - half + off, yy);
-      ctx.lineTo(x + gap + off - r * 0.06, yy);
-      ctx.moveTo(x + gap + off + r * 0.06, yy);
       ctx.lineTo(x + half + off, yy);
+      ctx.stroke();
+      let a = -half, b = half; // the lit span: right side while waxing, left side while waning
+      if (PHASE < 0.5) a = half * (1 - 2 * LIT);
+      else b = -half * (1 - 2 * LIT);
+      if (b - a < 2) continue;
+      const gp = (a + b) / 2 + Math.sin(moonT * 0.7 + i * 1.3) * (b - a) * 0.15;
+      ctx.globalAlpha = 0.12 + 0.2 * (1 - Math.abs(i) / 7);
+      ctx.beginPath();
+      if (gp - g > a) { ctx.moveTo(x + a + off, yy); ctx.lineTo(x + gp - g + off, yy); }
+      if (b > gp + g) { ctx.moveTo(x + gp + g + off, yy); ctx.lineTo(x + b + off, yy); }
       ctx.stroke();
     }
     ctx.lineCap = 'butt';
+    ctx.globalAlpha = 1;
+  }
+
+  // a floating paper lantern seen from above: warm glow, wooden frame, paper ribs
+  function drawLantern(l) {
+    const flicker = 0.85 + Math.sin(l.ph * 7.3) * 0.06 + Math.sin(l.ph * 12.7) * 0.05;
+    ctx.globalAlpha = 0.75 * flicker * l.born;
+    ctx.drawImage(LANTERN_GLOW, l.x - 46, l.y - 46, 92, 92);
+    ctx.save();
+    ctx.translate(l.x, l.y);
+    ctx.rotate(l.rot);
+    ctx.globalAlpha = l.born;
+    ctx.fillStyle = 'rgba(40, 18, 10, 0.9)';
+    ctx.fillRect(-7.5, -7.5, 15, 15);
+    ctx.fillStyle = `rgb(255, ${Math.round(196 + 24 * flicker)}, 140)`;
+    ctx.fillRect(-5.5, -5.5, 11, 11);
+    ctx.strokeStyle = 'rgba(120, 50, 20, 0.6)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-5.5, 0); ctx.lineTo(5.5, 0);
+    ctx.moveTo(0, -5.5); ctx.lineTo(0, 5.5);
+    ctx.stroke();
+    ctx.restore();
     ctx.globalAlpha = 1;
   }
 
@@ -670,6 +852,19 @@
     ctx.globalAlpha = 1;
   }
 
+  // fireflies: mostly dark, with brief soft pulses
+  function drawFireflies() {
+    ctx.fillStyle = 'rgb(255, 244, 200)';
+    for (const f of fireflies) {
+      const b = Math.max(0, Math.sin(f.ph * 2.2)) ** 3;
+      if (b < 0.02) continue;
+      ctx.globalAlpha = b;
+      ctx.drawImage(FIREFLY, f.x - 10, f.y - 10, 20, 20);
+      ctx.fillRect(f.x - 0.8, f.y - 0.8, 1.6, 1.6);
+    }
+    ctx.globalAlpha = 1;
+  }
+
   function render() {
     ctx.clearRect(0, 0, W, H);
     drawMotes();
@@ -681,12 +876,14 @@
     if (anyDeep) ctx.drawImage(deep, 0, 0, W, H);
     for (const k of koi) if (k.depth <= DEEP_CUT) drawKoi(k, ctx);
     drawMoon();
+    for (const l of lanterns) drawLantern(l);
     drawBubbles();
     drawFood();
     for (const p of pads) drawPad(p);
     for (const l of leaves) drawLeaf(l);
     drawRipples();
     drawMist();
+    drawFireflies();
   }
 
   function applyQuality() {
@@ -728,5 +925,16 @@
     stats: () => ({ koi: koi.length, fed, eaten, golden: goldSpawned }),
     rain: () => (raining = !raining),
     quality: () => quality,
+    lantern: () => { addLantern(); pluck(SCALE[7], 0.06); },
+    rest: () => { gather(6); bell(); },
+    scatter: () => { scatterUntil = performance.now() + 1500; },
+    bell: f => bell(f),
+    moon: () => ({ phase: PHASE, lit: LIT }),
+    sound: on => {
+      soundOn = !!on;
+      if (soundOn && ensureAudio()) pluck(SCALE[4]);
+      return soundOn;
+    },
+    soundOn: () => soundOn,
   };
 })();

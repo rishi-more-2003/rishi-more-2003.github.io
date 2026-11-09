@@ -8,6 +8,7 @@
   const sections = document.getElementById('sections');
   if (!term || !screen || !out || !form || !input) return;
 
+  const root = document.documentElement;
   const touch = matchMedia('(pointer: coarse)').matches;
   const banner = out.querySelector('.banner').cloneNode(true);
   const history = [];
@@ -15,10 +16,23 @@
   // the canvas has id="pond", so window.pond is that element until pond.js swaps in the api
   const pond = () => (window.pond && typeof window.pond.feed === 'function' ? window.pond : null);
 
+  // title card: any key or click skips it, then it gets out of the way
+  const intro = document.getElementById('intro');
+  if (intro && root.classList.contains('intro-on')) {
+    const skip = () => root.classList.add('intro-skip');
+    addEventListener('keydown', skip, { once: true });
+    addEventListener('pointerdown', skip, { once: true });
+    intro.addEventListener('animationend', e => { if (e.target === intro) intro.remove(); });
+  } else if (intro) {
+    intro.remove();
+  }
+
   const files = {
+    'about.md': 'about',
     'research.md': 'research',
     'projects.md': 'projects',
     'experience.md': 'experience',
+    'skills.md': 'skills',
     'fun.md': 'fun',
     'contact.txt': 'contact',
     'resume.pdf': 'resume',
@@ -66,22 +80,26 @@
   }
 
   const commands = {
-    help:        ['list commands', help],
-    about:       ['who i am, in one breath', about],
-    research:    ['papers', () => section('research')],
-    projects:    ['side projects', () => section('projects')],
-    experience:  ['where i have worked', () => section('experience')],
-    fun:         ['off the keyboard', () => section('fun')],
-    resume:      ['open my resume', resume],
-    contact:     ['how to reach me', contact],
-    feed:        ['drop food for the koi', feed],
-    koi:         ['pond stats', koiStats],
-    rain:        ['toggle rain on the pond', rain],
-    ls:          ['list files', ls],
-    cat:         ['read a file', cat],
-    screenfetch: ['redraw the banner', screenfetch],
-    history:     ['what you have typed', showHistory],
-    clear:       ['wipe the screen', clear],
+    help:       ['list commands', help],
+    about:      ['who i am, in one breath', about],
+    research:   ['papers', () => section('research')],
+    projects:   ['things i built', () => section('projects')],
+    experience: ['where i have worked', () => section('experience')],
+    skills:     ['what i work with', skills],
+    fun:        ['off the keyboard', () => section('fun')],
+    resume:     ['open my resume', resume],
+    contact:    ['how to reach me', contact],
+    feed:       ['drop food for the koi', feed],
+    lantern:    ['set a lantern on the water', lantern],
+    rest:       ["rest at the sculptor's idol", rest],
+    moon:       ["tonight's moon", moon],
+    fortune:    ['a line of pond wisdom', fortune],
+    sound:      ['koto plucks when koi eat (on/off)', sound],
+    rain:       ['let it rain on the pond', rain],
+    koi:        ['pond stats', koiStats],
+    ls:         ['list files', ls],
+    cat:        ['read a file', cat],
+    clear:      ['wipe the screen', clear],
   };
 
   const secret = {
@@ -92,24 +110,56 @@
     hi: () => print('hi :) try help.'),
     hello: () => print('hello :) try help.'),
     sudo: () => print('nice try. this incident will be reported to the koi.', 'err'),
-    rm: () => print('permission denied: the koi are load-bearing.', 'err'),
+    rm: args => (/^-(rf|fr)$/.test(args[0] || '') && /^(\/|~|\*|\.)/.test(args[1] || '')
+      ? die()
+      : print('permission denied: the koi are load-bearing.', 'err')),
     exit: () => print('there is no exit. only koi.', 'muted'),
     vim: () => print('you are now in vim. kidding. type :q to leave anyway.', 'muted'),
     ':q': () => print('see? easy.', 'muted'),
+    sekiro: () => print('hesitation burns tokens.', 'fortune'),
+    history: showHistory,
+    screenfetch,
     'nvidia-smi': nvidiaSmi,
   };
+
+  const FORTUNES = [
+    'the koi does not chase every pellet. neither should your gradient.',
+    'a model that knows when to stop thinking is wiser than one that never does.',
+    'quantize the weights, never the patience.',
+    'the memory wall is not climbed. it is routed around.',
+    'fall seven times, fine-tune eight.',
+    'still water profiles best.',
+    'even the great carp was once a pellet-chaser.',
+    'a reward model is only as honest as its labelers.',
+    'batch size one is a lonely road. the kernel walks it anyway.',
+    'hesitation burns tokens.',
+  ];
+  const PHASES = ['new moon', 'waxing crescent', 'first quarter', 'waxing gibbous', 'full moon', 'waning gibbous', 'last quarter', 'waning crescent'];
 
   function help() {
     const grid = el('div', 'help');
     for (const [name, [desc]] of Object.entries(commands)) grid.append(cmdButton(name), el('span', 'muted', desc));
     append(grid);
-    print('up/down walks history · tab completes · a few commands are hidden.', 'muted');
+    print('up/down walks history · tab completes · a few commands are hidden, and one of them is deadly.', 'muted');
   }
 
   function about() {
-    print('i enjoy making language models faster, cheaper, and easier to trust.');
-    print('previously cs @ johns hopkins. co-first author at icml 2026.', 'muted');
-    print('focus: post-training (rlhf, dpo) and efficient llm inference.', 'muted');
+    print("hi, i'm rishi. i teach llms to behave, then make them fast.");
+    facts([
+      ['behave', 'rlhf on qwen2.5-32b with clinician preference data at intersystems, 93% on a clinician-workflow golden set.'],
+      ['fast', "conformal thinking (icml 2026, with apple ml research): reasoning models that stop once they're sure. 12% fewer tokens, same accuracy."],
+      ['faster', 'int4 kv-cache attention in triton, up to 27x faster than pytorch at 128k context.'],
+    ]);
+    print('m.s.e. cs @ johns hopkins. based in sunnyvale.', 'muted');
+  }
+
+  function skills() {
+    facts([
+      ['code', 'python, c++, cuda c++, c, sql, bash'],
+      ['ml', 'pytorch, triton, vllm, transformers, fastapi'],
+      ['gpu', 'cuda, cublas, nsight, roofline analysis, kernel fusion, int4/int8 quantization, kv cache'],
+      ['infra', 'linux, docker, github actions, aws, prometheus, grafana'],
+    ]);
   }
 
   function section(name) {
@@ -141,6 +191,43 @@
     const n = Math.min(5, Math.max(1, parseInt(args[0], 10) || 1));
     for (let i = 0; i < n; i++) p.feed();
     print(n === 1 ? 'you scatter a handful of food. the koi noticed.' : `you scatter ${n} handfuls. chaos.`, 'muted');
+  }
+
+  function lantern() {
+    const p = pond();
+    if (!p) return print('the pond is asleep.', 'muted');
+    p.lantern();
+    print('you set a paper lantern on the water. it drifts toward the moon.', 'muted');
+  }
+
+  function rest() {
+    const p = pond();
+    if (!p) return print('the pond is asleep.', 'muted');
+    p.rest();
+    root.classList.add('resting');
+    setTimeout(() => root.classList.remove('resting'), 3200);
+    print("you rest at the sculptor's idol. the koi gather around you.", 'muted');
+  }
+
+  function moon() {
+    const p = pond();
+    if (!p) return print('clouds cover the sky.', 'muted');
+    const { phase, lit } = p.moon();
+    print(lit < 0.03
+      ? 'tonight: new moon. only earthshine on the water.'
+      : `tonight: ${PHASES[Math.round(phase * 8) % 8]}, ${Math.round(lit * 100)}% lit. the one on the water matches.`);
+  }
+
+  function fortune() {
+    print(FORTUNES[Math.floor(Math.random() * FORTUNES.length)], 'fortune');
+  }
+
+  function sound(args) {
+    const p = pond();
+    if (!p) return print('the pond is asleep.', 'muted');
+    const on = args[0] ? args[0] !== 'off' : !p.soundOn();
+    p.sound(on);
+    print(on ? 'sound on. listen when they eat.' : 'sound off.', 'muted');
   }
 
   function koiStats() {
@@ -188,6 +275,24 @@
 
   function clear() {
     out.replaceChildren();
+  }
+
+  // rm -rf /: the death screen, then a resurrection
+  function die() {
+    const p = pond();
+    if (p) { p.scatter(); p.bell(55); }
+    const d = el('div', 'death');
+    d.setAttribute('aria-hidden', 'true');
+    d.innerHTML = '<div class="death-mark"><div class="death-kanji">死</div><div class="death-word">death</div></div>'
+      + '<div class="revive"><div class="revive-kanji">回生</div><div class="revive-word">resurrection</div></div>';
+    const done = () => d.remove();
+    d.addEventListener('animationend', e => { if (e.target === d && e.animationName === 'death-out') done(); });
+    d.addEventListener('click', done);
+    setTimeout(done, 6000);
+    document.body.append(d);
+    clear();
+    screenfetch();
+    print('you died. then you got back up. go easy on the filesystem.', 'muted');
   }
 
   function nvidiaSmi() {
