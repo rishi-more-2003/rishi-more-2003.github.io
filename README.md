@@ -7,20 +7,32 @@ live at [rishi-more-2003.github.io](https://rishi-more-2003.github.io/).
 ## what's here
 
 ```
-index.html        the entire site, including everything the terminal prints
+index.html        the whole page: the opening, selected work, experience, contact
 style.css         the styling
-pond.js           the koi pond canvas behind the terminal
-hud.js            the top bar and the telemetry log
-terminal.js       the command line: help, research, feed, and a few hidden ones
-resume_mle.pdf    the resume the nav links to
+pond.js           the koi pond, a canvas fixed behind the page
+terminal.js       the terminal dialog; its commands read their content from the page
+site.js           the pause control, the caption under the moon, and the diagnostics
+resume_mle.pdf    the resume the page links to
 ```
+
+## preview locally
+
+```
+python -m http.server 8000
+```
+
+then open `http://localhost:8000`.
 
 ## notes
 
 - the og / twitter / json-ld metadata in `<head>` is what unfurls in link previews and feeds google. keep it in sync with whatever the resume currently claims.
-- the terminal prints sections straight out of `#sections` in `index.html`, so editing content means editing html, not js. it also means google and no-js visitors still see all of it.
-- the only third-party request is instrument serif from google fonts.
-- `pond.js` steps its own quality down (resolution, then glow, then koi count) if frames run long, so it stays smooth on weak machines.
+- the page is the source of truth. the terminal's `research`, `projects`, `experience`, `fun`, `contact` and `about` commands read the visible sections (the `data-*` attributes mark what they read), so content is edited once, in the html.
+- without javascript the page still reads top to bottom. only the pond, the terminal and the pause control go away.
+- two font families are downloaded from google fonts: instrument serif for display, instrument sans for prose. monospace is whatever the system has.
+- `pond.js` looks after its own cost. it caps the device pixel ratio, steps its quality down (resolution, then glow and caustics, then koi count) if frames run long, and stops drawing while the tab is hidden or the pond is scrolled out of view.
+- visitors who ask for reduced motion get a still, composed pond. the pause button does the same for anyone, and the choice is remembered.
+- the moon on the water follows the real phase, so the opening looks different through the month.
+- for tuning: `?debug` shows pond diagnostics (so does `debug` in the terminal), `?moon=0.5` previews a phase (0 is new, 0.5 is full), and `?q=0` to `?q=3` pins the render quality.
 - favicon is an inline svg emoji (🎏, a carp streamer, the closest thing to a koi), so there's no `favicon.ico` to look for.
 
 ## license

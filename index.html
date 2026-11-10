@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>rishi</title>
   <meta name="description" content="Rishi More — ML engineer focused on efficient LLM inference: CUDA/kernel profiling, quantized kernels, and vLLM serving. Co-first author, ICML 2026.">
   <meta name="keywords" content="Rishi More, machine learning, LLM inference, RAG, preference optimization, Johns Hopkins, ICML, NLP, computer science">
@@ -18,18 +18,20 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Rishi More — ML Engineer, Efficient LLM Inference">
   <meta name="twitter:description" content="ML engineer focused on efficient LLM inference — kernels, quantization, vLLM serving. ICML 2026 co-first author.">
-  <meta name="theme-color" content="#030404">
-  <base target="_blank">
+  <meta name="theme-color" content="#040606">
+  <meta name="color-scheme" content="dark">
+
+  <!-- everything below works without scripts; this only tells the css that they are on -->
+  <script>document.documentElement.className = 'js';</script>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎏</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
-  <link rel="stylesheet" href="style.css?v=10">
-  <script src="pond.js?v=7" defer></script>
-  <script src="terminal.js?v=7" defer></script>
-  <script src="hud.js?v=2" defer></script>
-  <noscript><style>#sections { display: block !important; } .prompt, .chips, .js-only, .water-hint { display: none !important; }</style></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="style.css?v=11">
+  <script src="pond.js?v=8" defer></script>
+  <script src="terminal.js?v=8" defer></script>
+  <script src="site.js?v=1" defer></script>
 
   <script type="application/ld+json">
   {
@@ -52,108 +54,236 @@
   </script>
 </head>
 <body>
+  <a class="skip" href="#work">skip to selected work</a>
+
   <canvas id="pond" aria-hidden="true"></canvas>
 
-  <header class="hud-top" aria-hidden="true">
-    <span>rishi / pond</span>
-    <span class="hud-top__c"><em id="hud-moon">tonight</em></span>
-    <span class="hud-top__r"><i class="hud-dot"></i> live · <span id="hud-stat">—</span></span>
+  <!-- icons from lucide.dev, isc license -->
+  <header class="top">
+    <div class="wrap top__row">
+      <a class="brand" href="#top">rishi more</a>
+      <nav class="top__nav" aria-label="sections">
+        <a href="#work">work</a>
+        <a href="#experience">experience</a>
+        <a href="#contact">contact</a>
+      </nav>
+      <div class="top__tools js-only">
+        <button type="button" class="tool" id="motion-toggle" data-state="playing">
+          <svg class="icon icon--pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+          <svg class="icon icon--play" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          <span class="tool__label" id="motion-label">pause the pond</span>
+        </button>
+        <button type="button" class="tool tool--term" data-term-open aria-haspopup="dialog" aria-controls="terminal">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19h8"/><path d="m4 17 6-6-6-6"/></svg>
+          <span>open terminal</span>
+          <kbd class="kbd" data-term-kbd>ctrl k</kbd>
+        </button>
+      </div>
+    </div>
   </header>
-  <pre class="hud-log" id="hud-log" aria-hidden="true"></pre>
 
-  <div class="stage">
-    <main class="window" id="term">
-      <div class="bar" aria-hidden="true">
-        <span class="dots"><i></i><i></i><i></i></span>
-        <span class="title">rishi — zsh</span>
+  <main>
+    <section class="hero" data-pond-view aria-label="introduction">
+      <div class="wrap hero__inner">
+        <div class="hero__copy" data-pond-quiet>
+          <div class="nameplate">
+            <h1 class="name">rishi<span class="vh"> more</span></h1>
+            <span class="sig" lang="ja">理志</span>
+          </div>
+          <p class="tagline">making language models faster, cheaper, and easier to trust.</p>
+          <dl class="facts">
+            <div><dt>base</dt><dd data-fact="base">sunnyvale, california</dd></div>
+            <div><dt>prev</dt><dd>intersystems, apple ml, jhu dsai, mastek</dd></div>
+            <div><dt>uni</dt><dd data-fact="uni">johns hopkins (cs)</dd></div>
+            <div><dt>focus</dt><dd>teaching llms to behave, then making them fast</dd></div>
+          </dl>
+          <div class="actions">
+            <a class="btn btn--solid" href="#work">selected work <span class="arrow arrow--down" aria-hidden="true">↓</span></a>
+            <a class="btn" href="resume_mle.pdf" target="_blank" rel="noopener">résumé <span class="arrow" aria-hidden="true">↗</span></a>
+          </div>
+          <div class="reach">
+            <a class="reach__email" href="mailto:rmore2@jhu.edu">rmore2@jhu.edu</a>
+            <ul class="elsewhere" aria-label="elsewhere">
+              <li><a href="https://github.com/rishi-more-2003" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg><span>github</span></a></li>
+              <li><a href="https://linkedin.com/in/rishimore102" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg><span>linkedin</span></a></li>
+              <li><a href="https://scholar.google.com/citations?user=xUxO6r0AAAAJ&amp;hl=en" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg><span>scholar</span></a></li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      <div class="screen" id="screen">
-        <div id="out" aria-live="polite">
-          <div class="line"><span class="ps1">rishi@koi</span> <span class="path">~</span> % screenfetch</div>
-          <section class="banner">
-            <div class="nameplate">
-              <h1>rishi</h1>
-              <span class="alt-name" lang="ja">理志</span>
+      <p class="moon-note js-only" id="moon-note" hidden>
+        <svg class="moon-glyph" viewBox="-8 -8 16 16" aria-hidden="true"><circle r="6.5"/><path id="moon-lit" d=""/></svg>
+        <span id="moon-label">tonight</span>
+      </p>
+      <button type="button" class="water-hint js-only" id="water-hint">click the water to feed the koi</button>
+    </section>
+
+    <div class="study">
+      <section class="block" id="work" aria-labelledby="work-title">
+        <div class="wrap block__grid">
+          <h2 class="block__title" id="work-title">selected work</h2>
+          <div class="block__body">
+
+            <article class="lead" data-entry data-kind="research">
+              <div class="lead__main">
+                <h3 class="lead__name" data-name>conformal thinking</h3>
+                <p class="lead__blurb" data-blurb>making llms lazy in a good way: think hard only when it matters.</p>
+                <p class="lead__detail" data-detail data-about="fast">reasoning models that stop once they're sure. a dual-threshold early exit ends the thinking when the answer is confident or the reasoning has stalled, which cuts reasoning tokens by 12% at matched accuracy.</p>
+                <a class="go" href="https://arxiv.org/abs/2602.03814" target="_blank" rel="noopener" data-link>read the paper <span class="arrow" aria-hidden="true">↗</span></a>
+              </div>
+              <dl class="spec">
+                <div><dt>venue</dt><dd>icml 2026, main track</dd></div>
+                <div><dt>role</dt><dd>co-first author</dd></div>
+                <div><dt>with</dt><dd>apple ml research, jhu dsai</dd></div>
+                <div><dt>tested on</dt><dd>4 reasoning models, 4 benchmarks, 2.7k+ problems</dd></div>
+              </dl>
+            </article>
+
+            <div class="pair">
+              <article class="feature" data-entry data-kind="project">
+                <h3 class="feature__name" data-name>kv roofline</h3>
+                <p class="feature__blurb" data-blurb>fitting 580k tokens of context on an 8gb gpu.</p>
+                <p class="feature__detail" data-detail data-about="faster">int4 kv-cache quantization with a fused triton decode-attention kernel. kv memory drops 3.47x, and decode runs up to 27x faster than pytorch at 128k context.</p>
+                <p class="feature__meta">triton, pytorch, cuda</p>
+                <a class="go" href="https://github.com/rishi-more-2003/kv-roofline" target="_blank" rel="noopener" data-link>view the code <span class="arrow" aria-hidden="true">↗</span></a>
+              </article>
+              <article class="feature" data-entry data-kind="project">
+                <h3 class="feature__name" data-name>post-training failure evals</h3>
+                <p class="feature__blurb" data-blurb>finding where "aligned" models secretly get worse.</p>
+                <p class="feature__detail" data-detail>an evaluation harness that walks a base model through sft and dpo, then pins each regression on the step that caused it. six failure modes, from reward hacking to sycophancy and false confidence.</p>
+                <p class="feature__meta">python, pytorch, llm judge</p>
+                <a class="go" href="https://github.com/rishi-more-2003/post-training-failure-evals" target="_blank" rel="noopener" data-link>view the code <span class="arrow" aria-hidden="true">↗</span></a>
+              </article>
             </div>
-            <p class="tagline">making language models faster, cheaper, and easier to trust.</p>
-            <dl class="facts">
-              <dt>base</dt><dd>sunnyvale, california</dd>
-              <dt>prev</dt><dd>intersystems, apple ml, jhu dsai, mastek</dd>
-              <dt>uni</dt><dd>johns hopkins (cs)</dd>
-              <dt>focus</dt><dd>teaching llms to behave, then making them fast</dd>
-            </dl>
-            <nav class="links" aria-label="links">
-              <!-- icons from lucide.dev, isc license -->
-              <a href="mailto:rmore2@jhu.edu" aria-label="email" title="email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
-              <a href="https://github.com/rishi-more-2003" aria-label="github" title="github"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></a>
-              <a href="https://linkedin.com/in/rishimore102" aria-label="linkedin" title="linkedin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-              <a href="https://scholar.google.com/citations?user=xUxO6r0AAAAJ&amp;hl=en" aria-label="google scholar" title="google scholar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></a>
-              <a href="resume_mle.pdf" aria-label="resume" title="resume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></a>
-            </nav>
-          </section>
-          <p class="line muted js-only">type <button type="button" class="cmdlink" data-cmd="help">help</button> to look around, or <button type="button" class="cmdlink" data-cmd="feed">feed</button> the koi.</p>
+
+            <h3 class="sub" id="more-title">more research and projects</h3>
+            <ul class="more" aria-labelledby="more-title">
+              <li data-entry data-kind="project">
+                <a class="more__name" href="https://github.com/rishi-more-2003/conformal-serve" target="_blank" rel="noopener" data-link><span data-name>conformal-serve</span></a>
+                <span class="more__blurb" data-blurb>an llm server that stops thinking once it's sure enough</span>
+                <span class="more__kind">code</span>
+              </li>
+              <li data-entry data-kind="project">
+                <a class="more__name" href="https://github.com/rishi-more-2003/vllm-kernel-profiler" target="_blank" rel="noopener" data-link><span data-name>vllm-kernel-profiler</span></a>
+                <span class="more__blurb" data-blurb>what is my gpu doing between tokens?</span>
+                <span class="more__kind">code</span>
+              </li>
+              <li data-entry data-kind="project">
+                <a class="more__name" href="https://github.com/rishi-more-2003/decode-roofline" target="_blank" rel="noopener" data-link><span data-name>decode-roofline</span></a>
+                <span class="more__blurb" data-blurb>squeezing more speed out of llms on a laptop gpu</span>
+                <span class="more__kind">code</span>
+              </li>
+              <li data-entry data-kind="project">
+                <a class="more__name" href="https://github.com/rishi-more-2003/asym-rel-eff-kt" target="_blank" rel="noopener" data-link><span data-name>asym-rel-eff-kt</span></a>
+                <span class="more__blurb" data-blurb>what if ai agents could mentor each other?</span>
+                <span class="more__kind">code</span>
+              </li>
+              <li data-entry data-kind="research">
+                <a class="more__name" href="https://github.com/rishi-more-2003/Voice-Authentication" target="_blank" rel="noopener" data-link><span data-name>voice-authentication</span></a>
+                <span class="more__blurb" data-blurb>"hey siri" but it actually works at a concert</span>
+                <span class="more__kind">code</span>
+              </li>
+              <li data-entry data-kind="research">
+                <a class="more__name" href="https://ieeexplore.ieee.org/document/10698920" target="_blank" rel="noopener" data-link><span data-name>ieee paper</span></a>
+                <span class="more__blurb" data-blurb>hiding your face on camera without ruining the footage</span>
+                <span class="more__kind">paper</span>
+              </li>
+            </ul>
+
+          </div>
         </div>
+      </section>
 
-        <!-- what the terminal prints. kept in the html so search engines and no-js visitors still get it -->
-        <div id="sections" hidden>
-          <section data-section="research">
-            <h2>research</h2>
-            <ul>
-              <li><a href="https://arxiv.org/abs/2602.03814">making llms lazy in a good way — think hard only when it matters</a></li>
-              <li><a href="https://ieeexplore.ieee.org/document/10698920">hiding your face on camera without ruining the footage</a></li>
-              <li><a href="https://github.com/rishi-more-2003/Voice-Authentication">"hey siri" but it actually works at a concert</a></li>
-            </ul>
-          </section>
-          <section data-section="projects">
-            <h2>side projects</h2>
-            <ul>
-              <li><a href="https://github.com/rishi-more-2003/conformal-serve">an llm server that stops thinking once it's sure enough</a></li>
-              <li><a href="https://github.com/rishi-more-2003/kv-roofline">fitting 580k tokens of context on an 8gb gpu</a></li>
-              <li><a href="https://github.com/rishi-more-2003/post-training-failure-evals">finding where "aligned" models secretly get worse</a></li>
-              <li><a href="https://github.com/rishi-more-2003/vllm-kernel-profiler">what is my gpu doing between tokens?</a></li>
-              <li><a href="https://github.com/rishi-more-2003/asym-rel-eff-kt">what if ai agents could mentor each other?</a></li>
-              <li><a href="https://github.com/rishi-more-2003/decode-roofline">squeezing more speed out of LLMs on a laptop gpu</a></li>
-            </ul>
-          </section>
-          <section data-section="experience">
-            <h2>experience</h2>
-            <ul>
-              <li>summer 2026 @ intersystems <span class="meta">sde, ai experience</span></li>
-              <li>2025–26 @ apple ml research + jhu dsai <span class="meta">grad research, llm inference</span></li>
-              <li>2022–23 @ mastek <span class="meta">mle co-op</span></li>
-            </ul>
-          </section>
-          <section data-section="fun">
-            <h2>fun</h2>
-            <ul>
-              <li>bouldering <span class="meta">V9</span></li>
-              <li>chess <span class="meta">1700</span></li>
-              <li>lifting <span class="meta">bench 250lbs @ 118lbs</span></li>
-              <li>baking <span class="meta">72-layer croissant</span></li>
-            </ul>
-          </section>
+      <section class="block" id="experience" aria-labelledby="experience-title">
+        <div class="wrap block__grid">
+          <h2 class="block__title" id="experience-title">experience</h2>
+          <ol class="exp block__body">
+            <li data-exp>
+              <span class="exp__when" data-when>summer 2026</span>
+              <div class="exp__who">
+                <h3 class="exp__org" data-org>intersystems</h3>
+                <p class="exp__role" data-role>sde, ai experience</p>
+              </div>
+              <p class="exp__detail" data-detail data-about="behave">rlhf on qwen2.5-32b with clinician preference data, 93% on a clinician-workflow golden set.</p>
+            </li>
+            <li data-exp>
+              <span class="exp__when" data-when>2025–26</span>
+              <div class="exp__who">
+                <h3 class="exp__org" data-org>apple ml research + jhu dsai</h3>
+                <p class="exp__role" data-role>grad research, llm inference</p>
+              </div>
+              <p class="exp__detail" data-detail>co-first author of conformal thinking, and built the vllm calibration and evaluation pipeline behind it.</p>
+            </li>
+            <li data-exp>
+              <span class="exp__when" data-when>2022–23</span>
+              <div class="exp__who">
+                <h3 class="exp__org" data-org>mastek</h3>
+                <p class="exp__role" data-role>mle co-op</p>
+              </div>
+              <p class="exp__detail" data-detail>edge voice authentication with sub-100 ms p99 latency and 96.6% accuracy.</p>
+            </li>
+          </ol>
         </div>
+      </section>
 
-        <form class="prompt js-only" id="prompt" autocomplete="off">
-          <label for="cmd"><span class="ps1">rishi@koi</span> <span class="path">~</span> %</label>
-          <input id="cmd" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="type a command">
-        </form>
+      <section class="block" id="personal" aria-labelledby="personal-title">
+        <div class="wrap block__grid">
+          <h2 class="block__title" id="personal-title">off the keyboard</h2>
+          <ul class="fun block__body">
+            <li data-fun><span class="fun__name" data-name>bouldering</span><span class="fun__meta" data-meta>V9</span></li>
+            <li data-fun><span class="fun__name" data-name>chess</span><span class="fun__meta" data-meta>1700</span></li>
+            <li data-fun><span class="fun__name" data-name>lifting</span><span class="fun__meta" data-meta>bench 250lbs @ 118lbs</span></li>
+            <li data-fun><span class="fun__name" data-name>baking</span><span class="fun__meta" data-meta>72-layer croissant</span></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <section class="contact" id="contact" data-pond-view aria-labelledby="contact-title">
+      <div class="wrap">
+        <div class="contact__copy">
+          <h2 class="contact__title" id="contact-title">get in touch</h2>
+          <p class="contact__line">email is the fastest way to reach me.</p>
+          <a class="contact__email" href="mailto:rmore2@jhu.edu" data-contact="email" data-handle="rmore2@jhu.edu">rmore2@jhu.edu</a>
+          <ul class="contact__links">
+            <li><a href="https://github.com/rishi-more-2003" target="_blank" rel="noopener" data-contact="github" data-handle="rishi-more-2003">github <span class="arrow" aria-hidden="true">↗</span></a></li>
+            <li><a href="https://linkedin.com/in/rishimore102" target="_blank" rel="noopener" data-contact="linkedin" data-handle="rishimore102">linkedin <span class="arrow" aria-hidden="true">↗</span></a></li>
+            <li><a href="https://scholar.google.com/citations?user=xUxO6r0AAAAJ&amp;hl=en" target="_blank" rel="noopener" data-contact="scholar" data-handle="google scholar">scholar <span class="arrow" aria-hidden="true">↗</span></a></li>
+            <li><a href="resume_mle.pdf" target="_blank" rel="noopener" data-contact="resume" data-handle="resume_mle.pdf">résumé <span class="arrow" aria-hidden="true">↗</span></a></li>
+          </ul>
+          <button type="button" class="tool tool--term js-only" data-term-open aria-haspopup="dialog" aria-controls="terminal">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19h8"/><path d="m4 17 6-6-6-6"/></svg>
+            <span>open terminal</span>
+            <kbd class="kbd" data-term-kbd>ctrl k</kbd>
+          </button>
+        </div>
       </div>
+    </section>
+  </main>
 
-      <div class="chips js-only" aria-label="quick commands">
-        <button type="button" data-cmd="help">help</button>
-        <button type="button" data-cmd="about">about</button>
-        <button type="button" data-cmd="research">research</button>
-        <button type="button" data-cmd="projects">projects</button>
-        <button type="button" data-cmd="experience">experience</button>
-        <button type="button" data-cmd="contact">contact</button>
-        <button type="button" data-cmd="feed">feed</button>
-        <button type="button" data-cmd="lantern">lantern</button>
-      </div>
-    </main>
-  </div>
+  <footer class="foot">
+    <div class="wrap foot__row">
+      <p>© 2026 rishi more</p>
+      <p class="foot__note">static html, css and one canvas. no framework, no build step.</p>
+      <a class="foot__top" href="#top">back to top <span class="arrow arrow--up" aria-hidden="true">↑</span></a>
+    </div>
+  </footer>
 
-  <p class="water-hint" id="water-hint">click the water to feed the koi</p>
+  <!-- the terminal: the same content as the page, plus a line to the pond -->
+  <dialog class="term" id="terminal" aria-labelledby="term-title" tabindex="-1">
+    <header class="term__bar">
+      <h2 class="term__title" id="term-title"><span class="ps1">rishi@koi</span> terminal</h2>
+      <button type="button" class="term__close" data-term-close>close <kbd class="kbd">esc</kbd></button>
+    </header>
+    <div class="term__screen" id="screen">
+      <div id="out" role="log" aria-label="terminal output"></div>
+      <form class="prompt" id="prompt" autocomplete="off">
+        <label for="cmd"><span class="ps1">rishi@koi</span> <span class="path">~</span> %</label>
+        <input id="cmd" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" enterkeyhint="go" aria-label="type a command">
+      </form>
+    </div>
+    <div class="term__keys" id="term-keys" aria-label="commands"></div>
+  </dialog>
 </body>
 </html>

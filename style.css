@@ -1,65 +1,180 @@
-/* night water, vermilion koi, a terminal floating on top.
-   palette borrowed from sekiro: lacquer red, aged gold, paper ivory */
+/* a moonlit koi garden around a study.
+   the pond is the garden: open water, ivory and vermilion koi, broken moonlight.
+   the page below it is the study: a dark writing surface, warm serif, fine brass lines. */
 
 :root {
-  --red: #c8321f;
-  --ink: #ece4d4;
-  --muted: #8f877a;
-  --dim: #5c564d;
-  --gold: #c9a45c;
-  --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, "Helvetica Neue", Arial, sans-serif;
+  --sumi: #040606;       /* ink black: the deepest water */
+  --study: #060808;      /* the writing surface, a touch lifted from the water */
+  --ivory: #ece4d4;      /* paper and moonlight: the name, primary text */
+  --paper: #dcd4c4;      /* italic lines that sit just under the name */
+  --ash: #aaa294;        /* secondary text */
+  --stone: #8c8477;      /* dates and technical metadata */
+  --vermilion: #d5422b;  /* the koi; hover underlines */
+  --brass: #c9a45c;      /* lantern metal: hairlines, focus rings, the console edge */
+  --hair: rgba(201, 164, 92, 0.16);
+  --hair-strong: rgba(201, 164, 92, 0.34);
+
   --display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Hoefler Text", Baskerville, Georgia, serif;
+  --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
   --cjk: "Yu Mincho", YuMincho, "Hiragino Mincho ProN", "Noto Serif JP", "Noto Serif CJK JP", "Source Han Serif", "MS Mincho", "Songti SC", SimSun, serif;
+
+  --gutter: clamp(20px, 5.5vw, 100px);
+  --measure: 1240px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
-html,
-body {
-  height: 100%;
+html {
+  background: var(--sumi);
+  scrollbar-gutter: stable;
+  scrollbar-color: #2e2a25 var(--sumi);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
-body {
-  font-family: var(--mono);
-  font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--ink);
-  background: #020303 radial-gradient(ellipse at 50% 40%, #0d1215 0%, #070a0b 55%, #010101 100%) fixed;
-  -webkit-font-smoothing: antialiased;
+html:has(dialog[open]) {
   overflow: hidden;
 }
 
-::selection {
-  background: rgba(200, 50, 31, 0.4);
+body {
+  min-height: 100vh;
+  font: 400 17px/1.6 var(--sans);
+  color: var(--ivory);
+  /* what the water looks like before the canvas draws, and all there is without scripts */
+  background: var(--sumi) radial-gradient(ellipse 70% 60% at 72% 40%, #0c1716 0%, #070c0c 50%, var(--sumi) 100%) fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* the pond */
+::selection {
+  background: rgba(213, 66, 43, 0.4);
+  color: var(--ivory);
+}
+
+a {
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.no-js .js-only {
+  display: none !important;
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -64px;
+  z-index: 40;
+  padding: 12px 16px;
+  font: 500 15px/1 var(--sans);
+  color: #14110d;
+  background: var(--ivory);
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+.skip:focus {
+  top: 16px;
+}
+
+.wrap {
+  width: min(100% - 2 * var(--gutter), var(--measure));
+  margin-inline: auto;
+}
+
+.icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kbd {
+  font: 400 11.5px/1 var(--mono);
+  color: var(--stone);
+  padding: 4px 6px;
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.arrow {
+  display: inline-block;
+  transition: transform 0.2s var(--ease-out);
+}
+
+/* the pond: fixed behind everything. it shows through the opening and the contact ending */
 #pond {
   position: fixed;
-  inset: 0;
+  left: 0;
+  top: 0;
+  z-index: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100lvh;
   display: block;
-  cursor: crosshair;
+  opacity: 0;
+  transition: opacity 0.7s ease;
   touch-action: manipulation;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23ece4d4' stroke-opacity='.7' stroke-width='1.2'/%3E%3Ccircle cx='14' cy='14' r='1.5' fill='%23ece4d4'/%3E%3C/svg%3E") 14 14, crosshair;
 }
 
-/* a cinematic vignette and a little film grain, over the water but under the window */
+.pond-ready #pond {
+  opacity: 1;
+}
+
+.no-js #pond {
+  display: none;
+}
+
+/* a little grain over everything dark, so the gradients do not band */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+  opacity: 0.5;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E");
 }
 
 /* the rest command dims the world for a moment */
@@ -69,7 +184,7 @@ body::before {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 60%, rgba(30, 18, 8, 0.15), rgba(2, 2, 2, 0.6));
+  background: radial-gradient(ellipse at 60% 50%, rgba(30, 18, 8, 0.15), rgba(2, 2, 2, 0.6));
   opacity: 0;
   transition: opacity 1.4s ease;
 }
@@ -78,266 +193,879 @@ body::before {
   opacity: 1;
 }
 
-.stage {
-  position: relative;
-  z-index: 2;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 56px 16px 44px;
-  pointer-events: none; /* clicks fall through to the water */
-}
+/* ---------------------------------------------------------------- top bar */
 
-.water-hint {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 14px;
-  z-index: 2;
-  text-align: center;
-  font-size: 12px;
-  color: #5a554d;
-  pointer-events: none;
-  transition: opacity 1.2s;
-}
-
-.water-hint.gone {
-  opacity: 0;
-}
-
-/* the terminal window: smoked glass with a hairline of gold. no blur, so koi passing under stay sharp, just dimmer */
-.window {
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
-  width: min(640px, 100%);
-  max-height: calc(100vh - 100px);
-  max-height: calc(100svh - 100px);
-  background: rgba(12, 11, 10, 0.74);
-  border: 1px solid rgba(201, 164, 92, 0.14);
-  border-radius: 14px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
-  overflow: hidden;
-  transition: border-color 0.3s;
-  animation: rise 0.6s ease both;
-}
-
-.window:focus-within {
-  border-color: rgba(201, 164, 92, 0.38);
-}
-
-@keyframes rise {
-  from { opacity: 0; transform: translateY(8px); }
-}
-
-/* pond.js sets .lowfx when the machine can't keep up */
-.lowfx .window {
-  background: rgba(12, 11, 10, 0.9);
-}
-
-.bar {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(201, 164, 92, 0.08);
-}
-
-.dots {
-  display: flex;
-  gap: 8px;
-}
-
-.dots i {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #2c2a28;
-}
-
-.dots i:first-child {
-  background: var(--red);
-  box-shadow: 0 0 10px rgba(200, 50, 31, 0.6);
-}
-
-.title {
+.top {
   position: absolute;
   left: 0;
   right: 0;
-  text-align: center;
-  font: 600 12px var(--sans);
-  color: var(--muted);
-  pointer-events: none;
+  top: 0;
+  z-index: 6;
+  padding-top: max(16px, env(safe-area-inset-top));
+  pointer-events: none; /* the bar's empty stretches are still water */
+  animation: fade 0.5s ease both;
 }
 
-.screen {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 18px 22px 4px;
-  scrollbar-width: thin;
-  scrollbar-color: #3a352e transparent;
+.top__row {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
 }
 
-/* terminal text */
-.line {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+.top a,
+.top button {
+  pointer-events: auto;
 }
 
-.ps1 { color: var(--red); }
-.path,
-.muted { color: var(--muted); }
-.err { color: #e0604a; }
-.gold { color: var(--gold); }
-
-.fortune {
-  font: italic 400 15px/1.6 var(--serif);
-  color: var(--gold);
+.brand {
+  padding: 12px 0;
+  font: 500 15px/1 var(--sans);
+  letter-spacing: 0.01em;
+  color: var(--ivory);
+  text-decoration: none;
 }
 
-a {
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: rgba(200, 50, 31, 0.6);
-  text-underline-offset: 3px;
-  transition: color 0.2s;
+.top__nav {
+  display: flex;
+  gap: 28px;
+  margin-left: clamp(28px, 4vw, 56px);
 }
 
-a:hover {
-  color: var(--gold);
+.top__nav a {
+  padding: 12px 0;
+  font: 400 15px/1 var(--sans);
+  color: var(--ash);
+  text-decoration: none;
+  transition: color 0.18s ease;
 }
 
-.cmdlink {
-  font: inherit;
-  color: var(--ink);
-  background: none;
-  border: 0;
-  padding: 0;
+.top__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 12px;
+  font: 400 14px/1 var(--sans);
+  color: var(--ash);
+  background: rgba(4, 6, 6, 0.42); /* a little dark behind the label, for when a koi drifts under it */
+  border: 1px solid transparent;
+  border-radius: 3px;
   cursor: pointer;
-  text-decoration: underline dotted rgba(200, 50, 31, 0.65);
-  text-underline-offset: 3px;
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, transform 0.16s var(--ease-out);
 }
 
-.cmdlink:hover {
-  color: var(--gold);
+.tool:active {
+  transform: scale(0.97);
 }
 
-a:focus-visible,
-.cmdlink:focus-visible,
-.chips button:focus-visible {
-  outline: 1px solid var(--gold);
-  outline-offset: 2px;
+.tool .icon {
+  width: 16px;
+  height: 16px;
 }
 
-/* screenfetch banner: the name in serif, with its kanji beside it */
-.banner {
-  margin: 10px 0 14px;
+.tool--term {
+  color: var(--ivory);
+  border-color: var(--hair-strong);
 }
 
-.banner > * {
-  animation: rise-in 0.5s ease-out both;
+.icon--play,
+.tool[data-state="paused"] .icon--pause {
+  display: none;
 }
 
-.banner > :nth-child(2) { animation-delay: 0.06s; }
-.banner > :nth-child(3) { animation-delay: 0.12s; }
-.banner > :nth-child(4) { animation-delay: 0.18s; }
+.tool[data-state="paused"] .icon--play {
+  display: block;
+}
+
+/* ---------------------------------------------------------------- the opening */
+
+main {
+  position: relative;
+  z-index: 2;
+  pointer-events: none; /* open water stays clickable; text blocks turn it back on */
+}
+
+.hero {
+  position: relative;
+  z-index: 2; /* its words sit above the fade into the study */
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* a soft darkening behind the words, so nothing bright moves under them */
+.hero::before,
+.contact::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(3, 5, 5, 0.9) 0%, rgba(3, 5, 5, 0.8) 24%, rgba(3, 5, 5, 0.42) 46%, rgba(3, 5, 5, 0.1) 60%, rgba(3, 5, 5, 0) 70%),
+    linear-gradient(180deg, rgba(3, 5, 5, 0.62) 0%, rgba(3, 5, 5, 0) 22%);
+}
+
+.hero__inner {
+  padding-block: 128px 104px;
+}
+
+.hero__copy {
+  width: min(620px, 50%);
+  pointer-events: auto;
+}
+
+.hero__copy > * {
+  animation: rise 0.56s var(--ease-out) both;
+}
+
+.hero__copy > :nth-child(2) { animation-delay: 0.06s; }
+.hero__copy > :nth-child(3) { animation-delay: 0.12s; }
+.hero__copy > :nth-child(4) { animation-delay: 0.18s; }
+.hero__copy > :nth-child(5) { animation-delay: 0.24s; }
 
 .nameplate {
+  --name: clamp(96px, 9.2vw, 132px);
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 14px;
+  align-items: flex-start;
+  column-gap: calc(var(--name) * 0.11);
 }
 
-.banner h1,
-.banner .name {
-  font: 400 46px/1 var(--display);
-  letter-spacing: -0.01em;
+.name {
+  margin-left: -0.035em;
+  padding-bottom: 0.05em;
+  font: 400 var(--name)/0.84 var(--display);
+  letter-spacing: -0.02em;
+  text-rendering: optimizeLegibility;
 }
 
-/* the name in kanji, quiet beside the latin one */
-.alt-name {
-  font: 400 32px/1 var(--cjk);
-  color: var(--muted);
+/* the name again, written down the page the way a painting is signed */
+.sig {
+  margin-top: calc(var(--name) * 0.17);
+  font: 400 calc(var(--name) * 0.225)/1 var(--cjk);
+  letter-spacing: 0.16em;
+  color: var(--brass);
+  writing-mode: vertical-rl;
+  text-orientation: upright;
 }
 
 .tagline {
-  margin-top: 8px;
-  font: italic 400 17px/1.45 var(--display);
-  color: #a59d90;
+  max-width: 17.5em;
+  margin-top: clamp(14px, 1.5vw, 22px);
+  font: italic 400 clamp(21px, 1.82vw, 26px)/1.28 var(--display);
+  color: var(--paper);
+  text-wrap: balance;
 }
 
 .facts {
   display: grid;
-  grid-template-columns: 9ch 1fr;
+  row-gap: 5px;
+  margin-top: clamp(24px, 2.5vw, 36px);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.facts > div {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  column-gap: 20px;
+  align-items: baseline;
+}
+
+.facts dt {
+  font: 400 13px/1.5 var(--mono);
+  color: var(--stone);
+}
+
+.facts dd {
+  color: #c6beb0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 2.9vw, 40px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  font: 500 16px/1 var(--sans);
+  color: var(--ivory);
+  text-decoration: none;
+  background: rgba(4, 6, 6, 0.3);
+  border: 1px solid var(--hair-strong);
+  border-radius: 3px;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.16s var(--ease-out);
+}
+
+.btn--solid {
+  color: #14110d;
+  background: var(--ivory);
+  border-color: var(--ivory);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.reach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 28px;
+  margin-top: 18px;
+}
+
+.reach__email,
+.go,
+.contact__email,
+.contact__links a,
+.foot__top,
+.more__name {
+  color: var(--ivory);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(236, 228, 212, 0.34);
+  transition: text-decoration-color 0.18s ease;
+}
+
+.reach__email {
+  padding: 10px 0;
+  font-size: 16px;
+}
+
+.elsewhere {
+  display: flex;
+  gap: 22px;
+}
+
+.elsewhere a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  font-size: 15px;
+  color: var(--ash);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.elsewhere .icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* a caption for the moon on the water; site.js sets where it sits */
+.moon-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: italic 400 15px/1 var(--display);
+  letter-spacing: 0.01em;
+  /* light enough to read over the brightest water a full moon makes, with a little dark around it for
+     the moment a koi passes underneath */
+  color: #e4dac2;
+  text-shadow: 0 0 10px rgba(3, 5, 5, 0.9), 0 1px 2px rgba(3, 5, 5, 0.85);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 0);
+  transition: opacity 0.8s ease 0.3s;
+}
+
+.moon-note[hidden] {
+  display: none;
+}
+
+.moon-note.is-placed {
+  opacity: 1;
+}
+
+.moon-glyph {
+  width: 13px;
+  height: 13px;
+}
+
+.moon-glyph circle {
+  fill: rgba(236, 228, 212, 0.1);
+  stroke: rgba(216, 194, 146, 0.5);
+  stroke-width: 0.8;
+}
+
+.moon-glyph path {
+  fill: #e6dcc6;
+}
+
+.water-hint {
+  position: absolute;
+  right: max(var(--gutter), calc((100% - var(--measure)) / 2));
+  bottom: clamp(26px, 5vh, 52px);
+  margin-right: -10px;
+  padding: 10px;
+  font: 400 14px/1.3 var(--sans);
+  color: var(--ash);
+  text-shadow: 0 0 10px rgba(3, 5, 5, 0.9), 0 1px 2px rgba(3, 5, 5, 0.85);
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.18s ease;
+}
+
+.water-hint.is-nudged {
+  color: var(--ivory);
+}
+
+/* ---------------------------------------------------------------- the study */
+
+.study {
+  position: relative;
+  z-index: 1;
+  padding-bottom: clamp(88px, 11vw, 168px);
+  background: var(--study) radial-gradient(ellipse 60% 520px at 88% 0%, rgba(20, 38, 38, 0.4), rgba(20, 38, 38, 0) 70%) no-repeat;
+  pointer-events: auto;
+}
+
+/* the surface comes up out of the water, and lets it back in at the end */
+.study::before,
+.study::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: clamp(140px, 24vh, 280px);
+  pointer-events: none;
+}
+
+.study::before {
+  bottom: 100%;
+  background: linear-gradient(180deg, rgba(6, 8, 8, 0) 0%, rgba(6, 8, 8, 0.2) 30%, rgba(6, 8, 8, 0.62) 62%, rgba(6, 8, 8, 0.9) 85%, var(--study) 100%);
+}
+
+.study::after {
+  top: 100%;
+  background: linear-gradient(0deg, rgba(6, 8, 8, 0) 0%, rgba(6, 8, 8, 0.2) 30%, rgba(6, 8, 8, 0.62) 62%, rgba(6, 8, 8, 0.9) 85%, var(--study) 100%);
+}
+
+.block {
+  --lead-in: clamp(80px, 10vw, 152px);
+  padding-top: var(--lead-in);
+  scroll-margin-top: calc(64px - var(--lead-in)); /* a jump lands with the heading just under the top edge */
+}
+
+.block__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+}
+
+.block__title {
+  position: sticky;
+  top: 36px;
+  grid-column: 1 / span 3;
+  align-self: start;
+  font: italic 400 clamp(22px, 1.9vw, 27px)/1.2 var(--display);
+  color: var(--ash);
+}
+
+.block__body {
+  grid-column: 4 / -1;
+  min-width: 0;
+}
+
+/* the lead entry: the paper */
+.lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  column-gap: clamp(32px, 4vw, 64px);
+  align-items: end;
+  padding-bottom: clamp(44px, 5vw, 64px);
+  border-bottom: 1px solid var(--hair);
+}
+
+.lead__name {
+  margin-top: -0.12em;
+  font: 400 clamp(46px, 5.5vw, 78px)/0.98 var(--display);
+  letter-spacing: -0.015em;
+  text-rendering: optimizeLegibility;
+}
+
+.lead__blurb,
+.feature__blurb {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--paper);
+  text-wrap: balance;
+}
+
+.lead__blurb {
+  max-width: 21em;
+  margin-top: 18px;
+  font-size: clamp(21px, 1.82vw, 26px);
+  line-height: 1.28;
+}
+
+.lead__detail {
+  max-width: 34em;
+  margin-top: 16px;
+  color: var(--ash);
+}
+
+.go {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 6px 0;
+  font: 500 16px/1.3 var(--sans);
+}
+
+.spec {
+  display: grid;
+  font: 400 13px/1.55 var(--mono);
+}
+
+.spec > div {
+  display: grid;
+  grid-template-columns: 10ch minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--hair);
+}
+
+.spec dt {
+  color: var(--stone);
+}
+
+.spec dd {
+  color: #c6beb0;
+}
+
+/* two projects, side by side under it */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.feature {
+  padding: clamp(36px, 4vw, 52px) clamp(24px, 3vw, 44px) clamp(40px, 4.4vw, 56px) 0;
+}
+
+.feature + .feature {
+  padding-left: clamp(24px, 3vw, 44px);
+  padding-right: 0;
+  border-left: 1px solid var(--hair);
+}
+
+.feature__name {
+  font: 400 clamp(30px, 2.9vw, 40px)/1.05 var(--display);
+  letter-spacing: -0.01em;
+}
+
+.feature__blurb {
+  margin-top: 12px;
+  font-size: clamp(19px, 1.5vw, 21px);
+  line-height: 1.32;
+}
+
+.feature__detail {
+  max-width: 31em;
+  margin-top: 12px;
+  font-size: 16px;
+  color: var(--ash);
+}
+
+.feature__meta {
+  margin-top: 16px;
+  font: 400 13px/1.5 var(--mono);
+  color: var(--stone);
+}
+
+.feature .go {
+  margin-top: 14px;
+}
+
+/* the rest, compact */
+.sub {
+  padding-top: clamp(30px, 3.4vw, 44px);
+  font: italic 400 clamp(20px, 1.6vw, 23px)/1.2 var(--display);
+  color: var(--ash);
+  border-top: 1px solid var(--hair);
+}
+
+.more {
+  margin-top: 14px;
+}
+
+.more li {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) auto;
+  column-gap: 24px;
+  align-items: baseline;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(201, 164, 92, 0.09);
+}
+
+.more__name {
+  justify-self: start;
+  font: 400 14px/1.5 var(--mono);
+}
+
+.more__blurb {
+  font-size: 16px;
+  color: var(--ash);
+}
+
+.more__kind {
+  font: 400 12.5px/1.5 var(--mono);
+  color: var(--stone);
+}
+
+.exp li {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 1.3fr);
+  column-gap: clamp(20px, 2.6vw, 36px);
+  align-items: baseline;
+  padding: 26px 0;
+  border-top: 1px solid var(--hair);
+}
+
+.exp li:last-child {
+  border-bottom: 1px solid var(--hair);
+}
+
+.exp__when {
+  font: 400 13px/1.5 var(--mono);
+  color: var(--stone);
+}
+
+.exp__org {
+  font: 400 clamp(25px, 2.1vw, 29px)/1.12 var(--display);
+}
+
+.exp__role {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--ash);
+}
+
+.exp__detail {
+  font-size: 16px;
+  color: var(--ash);
+}
+
+.fun {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px 24px;
+  padding-top: 26px;
+  border-top: 1px solid var(--hair);
+}
+
+.fun__name {
+  display: block;
+  font: 400 clamp(24px, 2vw, 27px)/1.1 var(--display);
+}
+
+.fun__meta {
+  display: block;
+  margin-top: 7px;
+  font: 400 13px/1.5 var(--mono);
+  color: var(--stone);
+}
+
+/* ---------------------------------------------------------------- the ending: back at the water */
+
+.contact {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  min-height: min(96vh, 900px);
+  min-height: min(96svh, 900px);
+  padding: clamp(220px, 34vh, 340px) 0 clamp(44px, 6vw, 80px);
+  scroll-margin-top: -120px;
+}
+
+.contact::before {
+  background:
+    linear-gradient(90deg, rgba(3, 5, 5, 0.9) 0%, rgba(3, 5, 5, 0.8) 24%, rgba(3, 5, 5, 0.42) 46%, rgba(3, 5, 5, 0.1) 60%, rgba(3, 5, 5, 0) 70%),
+    linear-gradient(0deg, rgba(3, 5, 5, 0.7) 0%, rgba(3, 5, 5, 0) 26%);
+}
+
+.contact__copy {
+  width: min(640px, 100%);
+  pointer-events: auto;
+}
+
+.contact__title {
+  margin-left: -0.03em;
+  font: 400 clamp(60px, 7.4vw, 108px)/0.9 var(--display);
+  letter-spacing: -0.02em;
+  text-rendering: optimizeLegibility;
+}
+
+.contact__line {
+  margin-top: 18px;
+  font: italic 400 clamp(20px, 1.7vw, 24px)/1.3 var(--display);
+  color: var(--paper);
+}
+
+.contact__email {
+  display: inline-block;
+  margin-top: 22px;
+  padding: 6px 0;
+  font: 500 clamp(19px, 1.6vw, 22px)/1.3 var(--sans);
+}
+
+.contact__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 28px;
+  margin-top: 14px;
+}
+
+.contact__links a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 10px 0;
+  font-size: 16px;
+}
+
+.contact .tool--term {
+  margin-top: 26px;
+}
+
+.foot {
+  position: relative;
+  z-index: 2;
+  padding-bottom: max(26px, env(safe-area-inset-bottom));
+  font-size: 14px;
+  color: var(--stone);
+  background: linear-gradient(180deg, rgba(3, 5, 5, 0.7), rgba(3, 5, 5, 0.88));
+}
+
+.foot__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hair);
+}
+
+.foot__top {
+  margin-left: auto;
+  padding: 8px 0;
+  color: var(--ash);
+}
+
+/* ---------------------------------------------------------------- the terminal */
+
+.term {
+  --term-h: min(640px, 100vh - 96px);
+  position: fixed;
+  inset: 0 auto 0 max(var(--gutter), calc((100vw - var(--measure)) / 2));
+  width: min(680px, 100vw - 2 * var(--gutter));
+  height: var(--term-h);
+  max-width: none;
+  max-height: none;
+  margin: auto 0;
+  flex-direction: column;
+  overflow: hidden;
+  font: 400 13.5px/1.7 var(--mono);
+  color: var(--ivory);
+  /* a dark console with a brass edge: one fine line, a little warmth at the top */
+  background: #0a0a09 linear-gradient(180deg, rgba(201, 164, 92, 0.075), rgba(201, 164, 92, 0) 72px) no-repeat;
+  border: 1px solid rgba(201, 164, 92, 0.32);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 32px 96px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(236, 228, 212, 0.09);
+}
+
+.term:focus {
+  outline: none;
+}
+
+.term[open] {
+  display: flex;
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.2s ease-out, transform 0.26s var(--ease-out);
+}
+
+@starting-style {
+  .term[open] {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+
+/* opened from the keyboard: no ceremony */
+.term.is-instant[open] {
+  transition: none;
+}
+
+.term::backdrop {
+  background: rgba(2, 3, 3, 0.4);
+}
+
+.term__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 8px 18px;
+  border-bottom: 1px solid rgba(201, 164, 92, 0.12);
+}
+
+.term__title {
+  font: 400 13px/1 var(--mono);
+  color: var(--ash);
+}
+
+.term__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 8px 0 10px;
+  font: 400 13px/1 var(--sans);
+  color: var(--ash);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.term__screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 18px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #3a352e transparent;
+}
+
+.term .line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.term .ps1 { color: #e2593f; }
+.term .path,
+.term .muted { color: var(--stone); }
+.term .err { color: #ea7059; }
+.term .gold { color: var(--brass); }
+
+.term .fortune {
+  font: italic 400 17px/1.5 var(--display);
+  color: var(--brass);
+}
+
+.term__screen a {
+  color: var(--ivory);
+  text-decoration: underline;
+  text-decoration-color: rgba(213, 66, 43, 0.7);
+  text-underline-offset: 3px;
+  transition: color 0.18s ease;
+}
+
+.cmdlink {
+  padding: 0;
+  font: inherit;
+  color: var(--ivory);
+  text-decoration: underline dotted rgba(213, 66, 43, 0.7);
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+/* screenfetch: the page's own identity, echoed back */
+.t-banner {
+  margin: 8px 0 12px;
+}
+
+.t-nameplate {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.t-name {
+  font: 400 44px/0.9 var(--display);
+  letter-spacing: -0.01em;
+}
+
+.t-sig {
+  margin-top: 5px;
+  font: 400 13px/1 var(--cjk);
+  letter-spacing: 0.14em;
+  color: var(--brass);
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+.t-tagline {
+  margin-top: 8px;
+  font: italic 400 17px/1.4 var(--display);
+  color: var(--paper);
+}
+
+.t-facts {
+  display: grid;
+  grid-template-columns: 9ch minmax(0, 1fr);
   margin: 2px 0 8px;
 }
 
-.banner .facts {
-  margin: 14px 0 10px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(201, 164, 92, 0.12);
+.t-banner .t-facts {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(201, 164, 92, 0.14);
 }
 
-.facts dt { color: var(--muted); }
-.facts dd { margin: 0; }
+.t-facts dt { color: var(--stone); }
 
-/* icon links */
-.links {
-  display: flex;
-  gap: 6px;
-  margin-left: -6px;
-}
-
-.links a {
-  display: inline-flex;
-  padding: 6px;
-  color: var(--muted);
-  text-decoration: none;
-  border-radius: 8px;
-  transition: color 0.15s ease-out, background-color 0.15s ease-out, transform 0.15s ease-out;
-}
-
-.links a:hover {
-  color: var(--gold);
-  background: rgba(201, 164, 92, 0.08);
-  transform: translateY(-1px);
-}
-
-.links a:active {
-  transform: scale(0.94);
-}
-
-.links svg {
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* sections the terminal prints, styled like markdown */
 .md {
   margin: 4px 0 10px;
 }
 
-.md h2 {
+.md h3 {
   font: inherit;
-  color: var(--gold);
+  color: var(--brass);
 }
 
-.md h2::before {
+.md h3::before {
   content: "# ";
-  color: var(--dim);
+  color: #5f594f;
 }
 
 .md ul {
-  list-style: none;
   padding-left: 2ch;
 }
 
@@ -347,16 +1075,12 @@ a:focus-visible,
 
 .md li::before {
   content: "- ";
-  color: var(--dim);
-}
-
-.meta {
-  color: var(--muted);
+  color: #5f594f;
 }
 
 .help {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content minmax(0, 1fr);
   column-gap: 3ch;
   margin: 2px 0 6px;
 }
@@ -371,15 +1095,14 @@ a:focus-visible,
 }
 
 pre.smi {
+  margin: 4px 0 8px;
   font: inherit;
   font-size: 12px;
   line-height: 1.45;
   color: #b5ad9f;
   overflow-x: auto;
-  margin: 4px 0 8px;
 }
 
-/* the prompt */
 .prompt {
   display: flex;
   align-items: baseline;
@@ -395,54 +1118,53 @@ pre.smi {
   flex: 1;
   min-width: 0;
   font: inherit;
-  color: var(--ink);
+  color: var(--ivory);
   background: transparent;
   border: 0;
   outline: 0;
-  caret-color: var(--red);
+  caret-color: #e2593f;
 }
 
-/* quick commands, for anyone who'd rather not type */
-.chips {
+/* every command, as a button. they wrap; nothing hides off the edge */
+.term__keys {
   flex: none;
+  display: grid;
+  row-gap: 7px;
+  padding: 12px 16px 14px;
+  border-top: 1px solid rgba(201, 164, 92, 0.12);
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: 5.5ch minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.keys__label {
+  font: 400 12px/1 var(--mono);
+  color: var(--stone);
+}
+
+.keys__set {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  padding: 10px 14px 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-top: 1px solid rgba(201, 164, 92, 0.08);
 }
 
-.chips::-webkit-scrollbar {
-  display: none;
-}
-
-.chips button {
-  flex: none;
-  font: inherit;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(201, 164, 92, 0.14);
-  border-radius: 999px;
-  padding: 2px 10px;
+.keys button {
+  min-height: 30px;
+  padding: 0 10px;
+  font: 400 12.5px/1 var(--mono);
+  color: var(--ash);
+  background: rgba(236, 228, 212, 0.035);
+  border: 1px solid rgba(201, 164, 92, 0.18);
+  border-radius: 4px;
   cursor: pointer;
-  transition: color 0.15s ease-out, border-color 0.15s ease-out, transform 0.15s ease-out;
+  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, transform 0.14s var(--ease-out);
 }
 
-.chips button:hover {
-  color: var(--ink);
-  border-color: rgba(201, 164, 92, 0.5);
-}
-
-.chips button:active {
+.keys button:active {
   transform: scale(0.96);
-}
-
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
 }
 
 /* rm -rf /: death, then resurrection */
@@ -476,20 +1198,45 @@ pre.smi {
 .death-word,
 .revive-word {
   margin-top: 12px;
-  font: 400 14px var(--serif);
+  font: 400 15px var(--display);
   letter-spacing: 0.5em;
-  color: #a59d90;
+  color: var(--ash);
 }
 
 .revive {
   opacity: 0;
-  animation: rise-in 1.2s ease 1.9s forwards;
+  animation: rise 1.2s ease 1.9s forwards;
 }
 
 .revive-kanji {
   font: 400 min(20vw, 170px)/1 var(--cjk);
-  color: var(--gold);
+  color: var(--brass);
   text-shadow: 0 0 30px rgba(201, 164, 92, 0.4);
+}
+
+/* ?debug: what the pond is doing, for whoever is tuning it */
+.debug {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 30;
+  padding: 10px 12px;
+  font: 400 12px/1.55 var(--mono);
+  color: var(--ash);
+  white-space: pre;
+  background: rgba(6, 8, 8, 0.88);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
 }
 
 @keyframes death-in { to { background: rgba(6, 2, 2, 0.86); } }
@@ -501,130 +1248,381 @@ pre.smi {
   100% { opacity: 0; }
 }
 
-/* hud: a live top bar and a telemetry log */
-.hud-top,
-.hud-log {
-  position: fixed;
-  z-index: 3;
-}
+/* ---------------------------------------------------------------- pointer feedback, only where there is a pointer */
 
-.hud-top {
-  top: 0;
-  left: clamp(16px, 2.4vw, 32px);
-  right: clamp(16px, 2.4vw, 32px);
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 16px 0 12px;
-  border-bottom: 1px solid rgba(201, 164, 92, 0.12);
-  font: 500 10.5px/1 var(--mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  pointer-events: none;
-}
+@media (hover: hover) and (pointer: fine) {
+  .top__nav a:hover,
+  .elsewhere a:hover,
+  .tool:hover,
+  .term__close:hover,
+  .water-hint:hover,
+  .foot__top:hover {
+    color: var(--ivory);
+  }
 
-.hud-top__c em {
-  font: italic 400 16px/1 var(--display);
-  letter-spacing: 0.02em;
-  text-transform: none;
-  color: var(--gold);
-}
+  .tool--term:hover {
+    border-color: var(--brass);
+    background: rgba(201, 164, 92, 0.1);
+  }
 
-.hud-top__r {
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-}
+  .btn:hover {
+    border-color: var(--brass);
+    background: rgba(201, 164, 92, 0.1);
+  }
 
-.hud-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--red);
-  box-shadow: 0 0 10px var(--red);
-  animation: blink 1.6s steps(2) infinite;
-}
+  .btn--solid:hover {
+    background: #fbf4e6;
+    border-color: #fbf4e6;
+  }
 
-@keyframes blink {
-  50% { opacity: 0.25; }
-}
+  .reach__email:hover,
+  .go:hover,
+  .contact__email:hover,
+  .contact__links a:hover,
+  .foot__top:hover,
+  .more__name:hover {
+    text-decoration-color: var(--vermilion);
+  }
 
-.hud-log {
-  top: 58px;
-  left: clamp(16px, 2.4vw, 32px);
-  margin: 0;
-  font: 500 10px/1.7 var(--mono);
-  letter-spacing: 0.04em;
-  color: rgba(236, 228, 212, 0.32);
-  white-space: pre;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40%);
-  mask-image: linear-gradient(to bottom, transparent, #000 40%);
-}
+  a:hover > .arrow { transform: translate(2px, -2px); }
+  a:hover > .arrow--down { transform: translateY(3px); }
+  a:hover > .arrow--up { transform: translateY(-3px); }
 
-/* the log only shows where there is open water beside the terminal */
-@media (max-width: 1319px) {
-  .hud-log {
-    display: none;
+  .term__screen a:hover,
+  .cmdlink:hover {
+    color: var(--brass);
+  }
+
+  .keys button:hover {
+    color: var(--ivory);
+    border-color: rgba(201, 164, 92, 0.55);
+    background: rgba(201, 164, 92, 0.08);
   }
 }
 
-@media (max-width: 520px) {
+/* ---------------------------------------------------------------- narrower screens */
+
+@media (max-width: 1100px) {
+  .block__title {
+    grid-column: 1 / span 2;
+  }
+
+  .block__body {
+    grid-column: 3 / -1;
+  }
+
+  .lead {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 32px;
+  }
+}
+
+/* below this the opening stacks: open water on top, the name at the bottom */
+@media (max-width: 959px) {
+  .hero {
+    align-items: flex-end;
+  }
+
+  .hero::before,
+  .contact::before {
+    background:
+      linear-gradient(0deg, rgba(3, 5, 5, 0.94) 0%, rgba(3, 5, 5, 0.88) 40%, rgba(3, 5, 5, 0.5) 62%, rgba(3, 5, 5, 0.12) 78%, rgba(3, 5, 5, 0) 88%),
+      linear-gradient(180deg, rgba(3, 5, 5, 0.64) 0%, rgba(3, 5, 5, 0) 18%);
+  }
+
+  /* the top padding keeps the words clear of the bar, with a band of water between, on short screens too */
+  .hero__inner {
+    padding-block: calc(max(16px, env(safe-area-inset-top)) + 56px + clamp(88px, 20svh, 220px)) max(30px, env(safe-area-inset-bottom));
+  }
+
+  .hero__copy {
+    width: min(620px, 100%);
+  }
+
+  .nameplate {
+    --name: clamp(72px, 14vw, 112px);
+  }
+
+  .water-hint {
+    left: max(var(--gutter), calc((100% - var(--measure)) / 2));
+    right: auto;
+    top: calc(max(16px, env(safe-area-inset-top)) + 58px);
+    bottom: auto;
+    margin: 0 0 0 -10px;
+  }
+
+  .block__grid {
+    display: block;
+  }
+
+  .block__title {
+    position: static;
+    margin-bottom: 28px;
+  }
+
+  .contact {
+    min-height: min(92vh, 820px);
+    min-height: min(92svh, 820px);
+  }
+}
+
+@media (max-width: 719px) {
   body {
-    font-size: 12.5px;
+    font-size: 16px;
   }
 
-  .stage {
-    padding: 48px 10px 36px;
-  }
-
-  .window {
-    max-height: calc(100vh - 84px);
-    max-height: calc(100svh - 84px);
-  }
-
-  .hud-top {
-    grid-template-columns: 1fr auto;
-  }
-
-  .hud-top__c {
+  .top__nav {
     display: none;
   }
 
-  .screen {
-    padding: 14px 14px 4px;
+  .top__tools {
+    gap: 2px;
   }
 
-  .banner h1,
-  .banner .name {
-    font-size: 38px;
+  .tool {
+    min-height: 44px;
+  }
+
+  /* the pause control keeps its name for screen readers, and shows only its icon */
+  #motion-toggle {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  #motion-toggle .tool__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .facts {
-    grid-template-columns: 7ch 1fr;
+    font-size: 15px;
   }
 
-  .alt-name {
-    font-size: 27px;
+  .facts > div {
+    column-gap: 14px;
+  }
+
+  .actions .btn {
+    flex: 1 1 0;
+    padding: 0 12px;
+  }
+
+  .reach {
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  /* icons only, each a full touch target */
+  .elsewhere {
+    gap: 2px;
+    margin-right: -12px;
+  }
+
+  .elsewhere a {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+
+  .elsewhere .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .elsewhere span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .reach__email {
+    padding: 12px 0;
+  }
+
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .feature,
+  .feature + .feature {
+    padding: 36px 0 40px;
+  }
+
+  .feature + .feature {
+    border-left: 0;
+    border-top: 1px solid var(--hair);
+  }
+
+  .more li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 2px;
+    padding: 14px 0;
+  }
+
+  .more__blurb {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .more__name {
+    padding: 6px 0;
+  }
+
+  .exp li {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+    padding: 24px 0;
+  }
+
+  .fun {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .foot__top {
+    margin-left: 0;
+  }
+
+  /* the terminal becomes a sheet from the bottom, sized to what is actually visible above the keyboard */
+  .term {
+    /* two thirds of the screen, so the pond stays in view above it; all of it once the keyboard is up */
+    --term-h: min(var(--vvh, 100dvh) - 10px, max(66dvh, 520px));
+    inset: calc(var(--vvt, 0px) + var(--vvh, 100dvh) - var(--term-h)) 0 auto 0;
+    margin: 0;
+    width: 100%;
+    border-width: 1px 0 0;
+    border-radius: 14px 14px 0 0;
+    font-size: 14px;
+  }
+
+  @starting-style {
+    .term[open] {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+
+  .term__screen {
+    padding: 14px 16px 2px;
+  }
+
+  /* 16px keeps phones from zooming the page when the prompt takes focus */
+  .prompt,
+  .prompt input {
+    font-size: 16px;
+  }
+
+  .term__close {
+    min-height: 44px;
+  }
+
+  .term__keys {
+    row-gap: 10px;
+    padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+  }
+
+  .keys {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* the row names stay for screen readers; on a phone the rows speak for themselves */
+  .keys__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .keys button {
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  /* typing: the keyboard is up, so the buttons make room for the output */
+  .term.is-typing {
+    --term-h: calc(var(--vvh, 100dvh) - 10px);
+  }
+
+  .term.is-typing .term__keys {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  [data-term-kbd],
+  .term__close .kbd {
+    display: none;
+  }
+}
+
+/* very wide windows: the name grows with the water around it */
+@media (min-width: 1700px) {
+  .nameplate {
+    --name: 148px;
+  }
+
+  .hero__copy {
+    width: min(660px, 50%);
+  }
+
+  .tagline {
+    font-size: 28px;
+  }
+
+  .facts {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 380px) {
+  .nameplate {
+    --name: 66px;
+  }
+}
+
+/* short, wide windows: keep the opening on one screen */
+@media (min-width: 960px) and (max-height: 760px) {
+  .hero__inner {
+    padding-block: 96px 72px;
+  }
+
+  .nameplate {
+    --name: clamp(84px, 13vh, 112px);
+  }
+
+  .facts {
+    margin-top: 20px;
+  }
+
+  .actions {
+    margin-top: 24px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .window,
-  .banner > *,
-  .hud-dot {
-    animation: none;
-  }
-
-  .death,
-  .death * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
+}
 
-  * {
-    transition: none !important;
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
