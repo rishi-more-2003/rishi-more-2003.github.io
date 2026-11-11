@@ -500,13 +500,9 @@
       if (!text) return say('nothing to send.', 'muted');
     }
     if (text.length > m.max) return say(`that is ${text.length} characters. a note fits in ${m.max}; email me the long version.`, 'err');
+    if (m.wait() > 0) return say(`one at a time. try again in ${m.wait()}s.`, 'muted');
     say(`draft: "${text}"`);
-    if (!m.live()) {
-      // no relay on this page: the draft goes out through the visitor's own mail app
-      m.open(m.mailto(text));
-      say('opening your mail app with the draft ready to send. nothing opened? ', 'muted').append(link(m.mailto(text), `email ${m.to}`), '.');
-      return;
-    }
+    // a reply address is required: keep asking until it looks like one, or the visitor gives up
     let from = '';
     for (;;) {
       from = await ask('your email (so i can reply)', 'email');
@@ -516,8 +512,9 @@
     }
     say('sending…', 'muted');
     const r = await m.send({ email: from, message: text, via: 'terminal' });
-    if (r.ok) return say('sent. thank you, i will write back.', 'gold');
-    if (r.reason === 'too-soon') return say('one at a time. give it a few seconds, then send it again.', 'muted');
+    if (r.ok) return say(`sent. thank you. i will write back to ${from}.`, 'gold');
+    if (r.reason === 'too-soon') return say(`one at a time. try again in ${r.wait}s.`, 'muted');
+    if (r.reason === 'off' || r.reason === 'inactive') return say('notes are not switched on yet. email me at ', 'err').append(link(`mailto:${m.to}`, m.to), ' instead.');
     say('that did not go through. the draft is not lost: ', 'err').append(link(m.mailto(text, from), 'email it instead'), '.');
   }
 

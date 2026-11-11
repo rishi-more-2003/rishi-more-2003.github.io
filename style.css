@@ -890,11 +890,6 @@ main {
   display: none;
 }
 
-/* with no relay set up the note goes out through the visitor's own mail app, which already knows their address */
-.note:not(.is-relayed) .field--email {
-  display: none;
-}
-
 .note__send {
   display: flex;
   flex-wrap: wrap;
