@@ -245,9 +245,9 @@
         <div class="contact__copy">
           <h2 class="contact__title" id="contact-title">get in touch</h2>
           <p class="contact__line">leave a note here, or email me directly.</p>
-          <!-- notes: data-relay is the formsubmit.co endpoint that forwards each note to my inbox. once the inbox
-               has confirmed it, the address in the url can be swapped for the random alias formsubmit gives. -->
-          <form class="note js-only" id="msg-form" novalidate data-relay="https://formsubmit.co/ajax/rishi.more102@gmail.com">
+          <!-- notes: data-relay is the formsubmit.co endpoint that forwards each note to my inbox. it uses
+               formsubmit's random alias for the inbox, so the address itself is not in the url. -->
+          <form class="note js-only" id="msg-form" novalidate data-relay="https://formsubmit.co/ajax/a7cd9241a399fb9413255de38b043d5e">
             <div class="field">
               <label for="msg-text">message</label>
               <textarea id="msg-text" name="message" rows="3" maxlength="2000" aria-describedby="msg-text-error"></textarea>
