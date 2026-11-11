@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
-  <link rel="stylesheet" href="style.css?v=11">
-  <script src="pond.js?v=8" defer></script>
-  <script src="terminal.js?v=8" defer></script>
-  <script src="site.js?v=1" defer></script>
+  <link rel="stylesheet" href="style.css?v=12">
+  <script src="pond.js?v=9" defer></script>
+  <script src="terminal.js?v=9" defer></script>
+  <script src="site.js?v=2" defer></script>
 
   <script type="application/ld+json">
   {
@@ -130,7 +130,7 @@
                 <h3 class="lead__name" data-name>conformal thinking</h3>
                 <p class="lead__blurb" data-blurb>making llms lazy in a good way: think hard only when it matters.</p>
                 <p class="lead__detail" data-detail data-about="fast">reasoning models that stop once they're sure. a dual-threshold early exit ends the thinking when the answer is confident or the reasoning has stalled, which cuts reasoning tokens by 12% at matched accuracy.</p>
-                <a class="go" href="https://arxiv.org/abs/2602.03814" target="_blank" rel="noopener" data-link>read the paper <span class="arrow" aria-hidden="true">↗</span></a>
+                <a class="go" href="https://machinelearning.apple.com/research/conformal-thinking-risk-control" target="_blank" rel="noopener" data-link>read the paper <span class="arrow" aria-hidden="true">↗</span></a>
               </div>
               <dl class="spec">
                 <div><dt>venue</dt><dd>icml 2026, main track</dd></div>
@@ -146,14 +146,14 @@
                 <p class="feature__blurb" data-blurb>fitting 580k tokens of context on an 8gb gpu.</p>
                 <p class="feature__detail" data-detail data-about="faster">int4 kv-cache quantization with a fused triton decode-attention kernel. kv memory drops 3.47x, and decode runs up to 27x faster than pytorch at 128k context.</p>
                 <p class="feature__meta">triton, pytorch, cuda</p>
-                <a class="go" href="https://github.com/rishi-more-2003/kv-roofline" target="_blank" rel="noopener" data-link>view the code <span class="arrow" aria-hidden="true">↗</span></a>
+                <a class="go" href="https://github.com/rishi-more-2003/kv-roofline" target="_blank" rel="noopener" data-link>view code <span class="arrow" aria-hidden="true">↗</span></a>
               </article>
               <article class="feature" data-entry data-kind="project">
                 <h3 class="feature__name" data-name>post-training failure evals</h3>
                 <p class="feature__blurb" data-blurb>finding where "aligned" models secretly get worse.</p>
                 <p class="feature__detail" data-detail>an evaluation harness that walks a base model through sft and dpo, then pins each regression on the step that caused it. six failure modes, from reward hacking to sycophancy and false confidence.</p>
                 <p class="feature__meta">python, pytorch, llm judge</p>
-                <a class="go" href="https://github.com/rishi-more-2003/post-training-failure-evals" target="_blank" rel="noopener" data-link>view the code <span class="arrow" aria-hidden="true">↗</span></a>
+                <a class="go" href="https://github.com/rishi-more-2003/post-training-failure-evals" target="_blank" rel="noopener" data-link>view code <span class="arrow" aria-hidden="true">↗</span></a>
               </article>
             </div>
 
@@ -244,7 +244,26 @@
       <div class="wrap">
         <div class="contact__copy">
           <h2 class="contact__title" id="contact-title">get in touch</h2>
-          <p class="contact__line">email is the fastest way to reach me.</p>
+          <p class="contact__line">leave a note here, or email me directly.</p>
+          <!-- notes: set data-relay to a form endpoint (and data-key if it needs one) and they are delivered to you.
+               with neither set, the form opens the visitor's mail app with the note ready. see the readme. -->
+          <form class="note js-only" id="msg-form" novalidate data-relay="" data-key="">
+            <div class="field">
+              <label for="msg-text">message</label>
+              <textarea id="msg-text" name="message" rows="3" maxlength="2000" aria-describedby="msg-text-error"></textarea>
+              <p class="field__error" id="msg-text-error" aria-live="polite"></p>
+            </div>
+            <div class="field field--email">
+              <label for="msg-email">your email (so i can reply)</label>
+              <input id="msg-email" name="email" type="email" inputmode="email" autocomplete="email" spellcheck="false" autocapitalize="off" aria-describedby="msg-email-error">
+              <p class="field__error" id="msg-email-error" aria-live="polite"></p>
+            </div>
+            <input class="vh" type="text" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <div class="note__send">
+              <button type="submit" class="btn btn--solid">send message</button>
+              <p class="note__status" id="msg-status" role="status"></p>
+            </div>
+          </form>
           <a class="contact__email" href="mailto:rmore2@jhu.edu" data-contact="email" data-handle="rmore2@jhu.edu">rmore2@jhu.edu</a>
           <ul class="contact__links">
             <li><a href="https://github.com/rishi-more-2003" target="_blank" rel="noopener" data-contact="github" data-handle="rishi-more-2003">github <span class="arrow" aria-hidden="true">↗</span></a></li>

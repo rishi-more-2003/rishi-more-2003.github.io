@@ -1,6 +1,118 @@
-// the small things around the pond: the caption under the moon, the pause control, the feeding hint,
-// and diagnostics that stay out of sight unless asked for (?debug, or `debug` in the terminal).
+// the small things around the page: notes left for me (the contact form, and `msg` in the terminal),
+// the caption under the moon, the pause control, the feeding hint, and diagnostics that stay out of
+// sight unless asked for (?debug, or `debug` in the terminal).
 (() => {
+  // ---------------------------------------------------------------- notes
+
+  // a note has one way out, shared by the form and the terminal. if the form names a relay
+  // (data-relay, plus data-key if the relay wants one) the note is posted there and lands in my inbox.
+  // with no relay it opens the visitor's own mail app with the note ready to send.
+  const noteForm = document.getElementById('msg-form');
+  const mail = document.querySelector('[data-contact="email"]');
+  const TO = mail ? mail.getAttribute('href').replace(/^mailto:/i, '') : '';
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  let lastSent = 0;
+  const message = {
+    max: 2000,
+    to: TO,
+    live: () => !!(noteForm && noteForm.dataset.relay),
+    valid: s => EMAIL.test(String(s || '').trim()),
+    mailto: (text, from) => `mailto:${TO}?subject=${encodeURIComponent('hello from your site')}&body=${encodeURIComponent(text + (from ? `\n\nreply to: ${from}` : ''))}`,
+    open: url => { window.location.href = url; },
+    async send({ email, message: text, via }) {
+      if (!message.live()) return { ok: false, reason: 'no-relay' };
+      if (Date.now() - lastSent < 15000) return { ok: false, reason: 'too-soon' };
+      const body = { subject: `note from ${location.hostname || 'the site'}`, from_name: email, email, message: text, via };
+      if (noteForm.dataset.key) body.access_key = noteForm.dataset.key;
+      const stop = new AbortController(), timer = setTimeout(() => stop.abort(), 12000);
+      try {
+        const r = await fetch(noteForm.dataset.relay, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(body),
+          signal: stop.signal,
+        });
+        const j = await r.json().catch(() => ({}));
+        const ok = r.ok && String(j.success) !== 'false';
+        if (ok) lastSent = Date.now();
+        return { ok, reason: ok ? '' : 'refused' };
+      } catch (e) {
+        return { ok: false, reason: 'network' };
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+  };
+  window.site = { message };
+
+  if (noteForm) {
+    const text = noteForm.querySelector('#msg-text');
+    const email = noteForm.querySelector('#msg-email');
+    const trap = noteForm.querySelector('[name="botcheck"]');
+    const button = noteForm.querySelector('button[type="submit"]');
+    const status = document.getElementById('msg-status');
+    const loaded = Date.now();
+    const live = message.live();
+    noteForm.classList.toggle('is-relayed', live);
+    button.textContent = live ? 'send message' : 'open in your mail app';
+
+    const errorOf = field => document.getElementById(`${field.id}-error`);
+    const flag = (field, why) => {
+      field.setAttribute('aria-invalid', 'true');
+      errorOf(field).textContent = why;
+    };
+    const clear = field => {
+      field.removeAttribute('aria-invalid');
+      errorOf(field).textContent = '';
+    };
+    const say = (...parts) => status.replaceChildren(...parts);
+    const byMail = (label, body, from) => {
+      const a = document.createElement('a');
+      a.href = message.mailto(body, from);
+      a.textContent = label;
+      return a;
+    };
+    for (const f of [text, email]) f.addEventListener('input', () => clear(f));
+
+    noteForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const body = text.value.trim(), from = email.value.trim();
+      let first = null;
+      if (!body) { flag(text, 'write a message first.'); first = text; }
+      if (live && !message.valid(from)) {
+        flag(email, from ? 'that does not look like an email address.' : 'add an email so i can reply.');
+        first = first || email;
+      }
+      if (first) { first.focus(); return; }
+
+      if (!live) {
+        message.open(message.mailto(body));
+        say('your mail app should open with the note ready to send. nothing opened? ', byMail(`email ${TO}`, body), '.');
+        return;
+      }
+      // a field no person can see was filled in, or the form came back faster than anyone types
+      if (trap.value || Date.now() - loaded < 2500) {
+        noteForm.reset();
+        say('sent. thank you, i will write back.');
+        return;
+      }
+      button.disabled = true;
+      say('sending…');
+      const r = await message.send({ email: from, message: body, via: 'contact form' });
+      button.disabled = false;
+      if (r.ok) {
+        noteForm.reset();
+        say('sent. thank you, i will write back.');
+      } else if (r.reason === 'too-soon') {
+        say('one at a time. give it a few seconds, then send again.');
+      } else {
+        say('that did not go through. your note is still here: try again, or ', byMail('email it instead', body, from), '.');
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- the pond's small controls
+
   const toggle = document.getElementById('motion-toggle');
   const label = document.getElementById('motion-label');
   const hint = document.getElementById('water-hint');

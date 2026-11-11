@@ -137,6 +137,7 @@
   let quality = Number.isFinite(pinned) ? clamp(pinned, 0, 3) : weak ? 1 : 0;
   let dprCap = 1.5, glowOn = true;
   let W = 0, H = 0, DPR = 1, rawDpr = 1;
+  let chunky = false, chunkyTimer = 0; // the quantize easter egg: a few seconds at a fraction of the pixels
 
   // where things go. the page's text block is the quiet side; the open water beside (or above) it
   // holds the focal ellipse the big koi circle in, with the moon's reflection in its upper part
@@ -289,6 +290,7 @@
     rawDpr = window.devicePixelRatio || 1;
     DPR = Math.min(rawDpr, W < 700 ? Math.max(dprCap, 2) : dprCap);
     if (quality >= 1) DPR = Math.min(DPR, 1);
+    if (chunky) DPR = 0.22;
     cv.width = Math.round(W * DPR);
     cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -566,6 +568,22 @@
       rot: rand(-0.3, 0.3), ph: rand(0, 6.28), born: 0, seed: rand(0, 50),
     });
     ripples.push({ x, y, t: 0, dur: 1.6, max: 34 * L.vf, w: 0.9, a: 0.7 });
+    return true;
+  }
+
+  // `quantize` in the terminal: the pond in int4, more or less. chunky pixels, the same koi
+  function quantize(ms = 7000) {
+    clearTimeout(chunkyTimer);
+    chunky = true;
+    root.classList.add('pond-int4');
+    resize();
+    renderOnce();
+    chunkyTimer = setTimeout(() => {
+      chunky = false;
+      root.classList.remove('pond-int4');
+      resize();
+      renderOnce();
+    }, ms);
     return true;
   }
 
@@ -1522,7 +1540,7 @@
     feed: () => feed(),
     stats: () => ({
       koi: koi.length, fed, eaten, golden: goldSpawned, fps: Number.isFinite(fps) ? fps : null, quality,
-      lanterns: lanterns.length, dpr: DPR, running, visible: sceneVisible, size: `${W}x${H}`,
+      lanterns: lanterns.length, dpr: DPR, running, visible: sceneVisible, size: `${W}x${H}`, raining,
     }),
     rain: () => {
       if (!wantsMotion()) { dispatchEvent(new CustomEvent('pond:still')); return null; }
@@ -1541,7 +1559,24 @@
       bell();
       return true;
     },
-    scatter: () => { scatterUntil = performance.now() + 1500; },
+    scatter: () => {
+      scatterUntil = performance.now() + 1500;
+      ripples.push({ x: L.fx, y: L.fy, t: 0, dur: 1.9, max: 130 * L.vf, w: 1.2, a: 1 });
+    },
+    // one ripple somewhere in the open water (the terminal's ping)
+    ripple: () => {
+      if (!wantsMotion()) return false;
+      const [x, y] = openWater();
+      ripples.push({ x, y, t: 0, dur: 2.2, max: 72 * L.vf, w: 1.1, a: 1 });
+      return true;
+    },
+    // call the great carp without waiting for it
+    summon: () => {
+      if (goldSpawned || !wantsMotion()) return false;
+      goldPending = true;
+      return true;
+    },
+    quantize: ms => quantize(ms),
     bell: f => bell(f),
     moon: () => ({ phase: PHASE, lit: LIT }),
     layout: () => ({ ...L, quiet: { ...L.quiet }, width: W, height: H }),
